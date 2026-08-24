@@ -1,0 +1,13 @@
+SKU,Product,Family,Pack,CasesPerPallet,PoundsPerCase,MasterStatus
+SKU-0001,Classic Topping 12-Pack,Family 1,Large,120,8.2,OK
+SKU-0002,Light Topping 12-Pack,Family 1,Large,120,7.8,OK
+SKU-0003,Seasonal Vanilla 6-Pack,Family 2,Small,144,5.6,OK
+SKU-0004,Foodservice Original,Family 2,Large,108,9.4,OK
+SKU-0005,Club Pack Original,Family 3,Large,126,10.1,OK
+SKU-0006,Club Pack Extra Creamy,Family 3,Large,126,10.4,OK
+SKU-0007,Seasonal Caramel 6-Pack,Family 4,Small,144,5.9,OK
+SKU-0008,Institutional Plain,Family 4,Large,108,9.0,REVIEW
+SKU-0009,Retail Extra Creamy,Family 5,Small,144,6.1,OK
+SKU-0010,Value Original 12-Pack,Family 5,Large,120,8.5,OK
+SKU-0011,Regional Original 6-Pack,Family 2,Small,144,5.7,OK
+SKU-0012,Limited Cocoa 6-Pack,Family 4,Small,144,6.0,OK
