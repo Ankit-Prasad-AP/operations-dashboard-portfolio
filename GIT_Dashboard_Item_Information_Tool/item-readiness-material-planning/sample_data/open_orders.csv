@@ -1,0 +1,4 @@
+Item Code,Description,QOH,Pick Date,Order,Open Qty,Customer
+SKU-0001,Vanilla Whipped Topping,250,2026-08-24,ORD-1001,300,Customer D
+SKU-0001,Vanilla Whipped Topping,,2026-08-27,ORD-1002,200,Customer E
+SKU-0002,Seasonal Cocoa Topping,80,2026-08-26,ORD-2001,260,Customer F

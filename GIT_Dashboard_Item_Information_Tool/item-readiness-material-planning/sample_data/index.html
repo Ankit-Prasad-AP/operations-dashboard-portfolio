@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Synthetic Sample Inputs · Manufacturing Readiness Command Center</title>
+<style>
+:root{--ink:#102b4e;--muted:#6f8298;--line:#dbe7f3;--blue:#2563eb;--sky:#38bdf8;--card:#fff;--bg:#f4f8fc}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:var(--ink);background:radial-gradient(circle at 15% -5%,rgba(56,189,248,.14),transparent 28%),var(--bg)}
+.wrap{max-width:1050px;margin:0 auto;padding:36px 22px 54px}.hero{padding:30px;border-radius:24px;color:white;background:linear-gradient(130deg,#071426,#0d3156);box-shadow:0 22px 55px rgba(9,32,59,.20)}.eyebrow{font-size:10px;font-weight:900;letter-spacing:.11em;text-transform:uppercase;color:#9dd9ff}.hero h1{margin:10px 0 8px;font-size:36px;letter-spacing:-.045em}.hero p{margin:0;max-width:780px;color:#c5d5e6;line-height:1.6;font-size:14px}.back{display:inline-flex;margin-top:17px;padding:9px 12px;border-radius:10px;background:#2563eb;color:white;text-decoration:none;font-size:12px;font-weight:850}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}.file{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px 16px;box-shadow:0 9px 24px rgba(21,56,91,.06)}.file b{display:block;font-size:13px}.file p{margin:5px 0 10px;color:var(--muted);font-size:11px;line-height:1.45}.file a{display:inline-flex;color:var(--blue);font-size:11px;font-weight:850;text-decoration:none}.note{margin-top:16px;padding:13px 15px;border:1px solid #bfe0f5;background:#eff9ff;border-radius:13px;color:#315a77;font-size:11px;line-height:1.5}@media(max-width:700px){.grid{grid-template-columns:1fr}.hero{padding:24px}.hero h1{font-size:30px}}
+</style>
+</head>
+<body><main class="wrap"><section class="hero"><div class="eyebrow">Synthetic portfolio inputs</div><h1>Inspect the demo data structures</h1><p>These deterministic files are intentionally generic. They demonstrate how the public dashboard connects demand, item master data, bill-of-materials relationships, inventory, inbound supply, schedules, and lot life without exposing operational source data.</p><a class="back" href="../index.html">← Return to command center</a></section><section class="grid">
+<div class="file"><b>Forecast</b><p>Planning-period forecast by synthetic finished item.</p><a href="forecast.csv" download>Download forecast.csv</a></div>
+<div class="file"><b>Open Orders</b><p>Current open production/customer orders used as active demand.</p><a href="open_orders.csv" download>Download open_orders.csv</a></div>
+<div class="file"><b>Item Master</b><p>Finished-item packaging, formula, pack, and production attributes.</p><a href="item_master.csv" download>Download item_master.csv</a></div>
+<div class="file"><b>Bill of Materials</b><p>Component relationships and per-case consumption quantities.</p><a href="bom.csv" download>Download bom.csv</a></div>
+<div class="file"><b>Inventory</b><p>Synthetic on-hand component and ingredient balances.</p><a href="inventory.csv" download>Download inventory.csv</a></div>
+<div class="file"><b>Purchase Orders</b><p>Inbound material supply and timing used for readiness context.</p><a href="purchase_orders.csv" download>Download purchase_orders.csv</a></div>
+<div class="file"><b>Schedule</b><p>Actual scheduled-production scenario kept separate from proposed production.</p><a href="schedule.csv" download>Download schedule.csv</a></div>
+<div class="file"><b>Lots</b><p>Finished-goods lot availability and expiration dates for shelf-life analysis.</p><a href="lots.csv" download>Download lots.csv</a></div>
+</section><div class="note"><b>Privacy note:</b> every value and identifier in this folder is synthetic. The public dashboard does not upload, transmit, or fetch operational data.</div></main></body></html>
