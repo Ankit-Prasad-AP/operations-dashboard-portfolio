@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Cream Demand & Tanker Allocation</title>
+<style>
+:root{
+  --bg:#f3f6fa;--panel:#ffffff;--panel2:#f8fafc;--text:#172033;--muted:#687386;
+  --navy:#183b5b;--navy2:#24577d;--cyan:#0ea5b7;--green:#198754;--amber:#b7791f;
+  --red:#c43d3d;--purple:#7756a3;--line:#d7dee8;--soft:#eaf0f6;--shadow:0 8px 24px rgba(20,45,70,.08);
+  --std:#1d6fa5;--org:#5f8f32;--oat:#b7791f;
+}
+body.dark{
+  --bg:#101820;--panel:#18222d;--panel2:#202c38;--text:#edf4fa;--muted:#aab7c5;
+  --navy:#6cb2df;--navy2:#8bc2e6;--line:#334352;--soft:#253443;--shadow:none;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Segoe UI,Arial,sans-serif}
+button,input,select{font:inherit}
+.topbar{position:sticky;top:0;z-index:20;background:linear-gradient(90deg,#183b5b,#24577d);color:#fff;padding:14px 22px;box-shadow:0 2px 12px rgba(0,0,0,.18)}
+.toprow{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.title{font-size:23px;font-weight:800;letter-spacing:.2px}.subtitle{font-size:12px;opacity:.82;margin-top:3px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;border-radius:8px;padding:8px 11px;cursor:pointer;font-weight:700}
+.btn:hover{background:rgba(255,255,255,.18)}
+.wrap{max-width:1700px;margin:0 auto;padding:18px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
+.panel h2{font-size:16px;margin:0 0 12px;color:var(--navy)}
+.bulkdrop{border:2px dashed var(--cyan);border-radius:12px;padding:16px;background:linear-gradient(135deg,var(--panel2),var(--panel));margin-bottom:12px;position:relative;min-height:104px;transition:.15s}
+.bulkdrop.drag{background:#e9fbfd;border-color:var(--green);transform:translateY(-1px)}
+.dark .bulkdrop.drag{background:#17343a}
+.bulkdrop strong{display:block;font-size:15px;color:var(--navy)}
+.bulkdrop .hint{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.45}
+.bulkdrop .bulkstatus{font-size:12px;font-weight:800;margin-top:9px}
+.bulkdrop input{position:absolute;inset:0;opacity:0;cursor:pointer;z-index:1}
+.uploadgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.drop{border:2px dashed #98a8b9;border-radius:10px;padding:14px;background:var(--panel2);position:relative;min-height:92px;transition:.15s}
+.drop.drag{border-color:var(--cyan);background:#e9fbfd}.dark .drop.drag{background:#17343a}
+.drop strong{display:block;font-size:14px}.drop .hint{font-size:12px;color:var(--muted);margin-top:4px}
+.drop .file{font-size:12px;font-weight:700;margin-top:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer;z-index:1}
+.clear-upload{position:absolute;right:9px;top:9px;z-index:3;border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:7px;padding:5px 9px;font-size:11px;font-weight:800;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.clear-upload:hover{background:var(--soft)}
+.clear-upload:disabled{opacity:.4;cursor:not-allowed}
+.drop strong,.drop .hint,.drop .file{position:relative;z-index:0;padding-right:62px}
+.statusline{margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.badge{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel2);padding:5px 9px;border-radius:999px;font-size:12px;font-weight:700}
+.dot{width:8px;height:8px;border-radius:50%;background:#9aa7b3}.dot.ok{background:var(--green)}.dot.warn{background:var(--amber)}.dot.err{background:var(--red)}
+.controls{display:grid;grid-template-columns:repeat(6,minmax(145px,1fr));gap:10px}
+.control{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px}
+.control label{display:block;font-size:11px;font-weight:800;color:var(--muted);margin-bottom:5px}
+.control input,.control select{width:100%;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--text);padding:7px}
+.note{border-left:4px solid var(--cyan);background:var(--panel2);padding:10px 12px;border-radius:7px;font-size:12px;line-height:1.45;color:var(--muted)}
+.note b{color:var(--text)}
+.kpis{display:grid;grid-template-columns:repeat(6,minmax(150px,1fr));gap:10px}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--panel2)}
+.kpi .lab{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.kpi .val{font-size:23px;font-weight:900;margin-top:3px}.kpi .sub{font-size:11px;color:var(--muted);margin-top:3px}
+.kpi.std{border-top:4px solid var(--std)}.kpi.org{border-top:4px solid var(--org)}.kpi.oat{border-top:4px solid var(--oat)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.tab{border:1px solid var(--line);background:var(--panel);color:var(--text);padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:800;font-size:12px}
+.tab.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.tabpage{display:none}.tabpage.active{display:block}
+.grid2{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}
+.sectiontitle{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.sectiontitle h3{font-size:14px;margin:0;color:var(--navy)}
+.smallbtn{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:6px 9px;border-radius:7px;font-size:11px;font-weight:800;cursor:pointer}
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:9px;max-height:560px}
+table{border-collapse:collapse;width:100%;font-size:12px}
+th,td{padding:8px 9px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{position:sticky;top:0;background:var(--navy);color:#fff;z-index:2;font-size:11px}
+td:first-child,th:first-child{text-align:left}
+tr:hover td{background:var(--panel2)}
+.num{font-variant-numeric:tabular-nums}
+.left{text-align:left!important}.center{text-align:center!important}
+.stdTxt{color:var(--std);font-weight:800}.orgTxt{color:var(--org);font-weight:800}.oatTxt{color:var(--oat);font-weight:800}
+.warnrow td{background:#fff7e8}.dark .warnrow td{background:#3a2c16}
+.errrow td{background:#fff0f0}.dark .errrow td{background:#3b2020}
+.sitecards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.sitecard{border:1px solid var(--line);border-radius:10px;background:var(--panel2);padding:12px}
+.sitecard h4{margin:0 0 6px;font-size:14px}.sitecard .big{font-weight:900;font-size:20px}
+.sitecard .muted{font-size:11px;color:var(--muted);margin-top:3px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin:4px 0 10px}
+.legend span:before{content:"";display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px}
+.legend .lstd:before{background:var(--std)}.legend .lorg:before{background:var(--org)}.legend .loat:before{background:var(--oat)}
+.bar{height:10px;background:var(--soft);border-radius:999px;overflow:hidden;display:flex;min-width:120px}
+.bar span{height:100%}.bar .std{background:var(--std)}.bar .org{background:var(--org)}.bar .oat{background:var(--oat)}
+.settingsrow{display:grid;grid-template-columns:2fr 1fr;gap:12px}
+.codebox{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.codepill{font-size:11px;border:1px solid var(--line);background:var(--panel2);border-radius:999px;padding:4px 7px}
+.empty{padding:36px;text-align:center;color:var(--muted);font-size:13px}
+.issue{padding:9px 10px;border-bottom:1px solid var(--line);font-size:12px}.issue b{color:var(--red)}
+.footer{color:var(--muted);font-size:11px;text-align:center;padding:8px 0 20px}
+.preflight{display:none;border:2px solid var(--red);background:#fff1f1;color:#7f1d1d;border-radius:10px;padding:13px 14px;margin-top:12px}
+.dark .preflight{background:#3b2020;color:#ffd7d7}
+.preflight.show{display:block}.preflight h3{margin:0 0 6px;font-size:14px}.preflight ul{margin:6px 0 0 18px;padding:0;font-size:12px}
+.daystrip{display:flex;gap:9px;overflow-x:auto;padding:3px 1px 10px;scrollbar-width:thin}
+.daycard{flex:0 0 205px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);padding:10px}
+.daycard .date{font-weight:900;color:var(--navy);font-size:14px}.daycard .use{font-size:18px;font-weight:900;margin-top:4px}
+.daycard .loads{font-size:12px;font-weight:800;margin-top:4px}.daycard .times{font-size:11px;color:var(--muted);line-height:1.45;margin-top:5px;white-space:normal}
+.timelinebox{border:1px solid var(--line);border-radius:10px;background:var(--panel2);padding:10px;overflow:auto}
+.timelinebox svg{display:block;min-width:1050px;width:100%;height:350px}
+.chartlegend{display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin:6px 0 10px}
+.chartlegend span:before{content:"";display:inline-block;width:18px;height:3px;margin-right:6px;vertical-align:middle;border-radius:2px}
+.chartlegend .used:before{background:#24577d}.chartlegend .cap:before{background:#198754}.chartlegend .receipt:before{background:#b7791f;height:8px;width:8px;border-radius:50%}
+.blocked{opacity:.45;pointer-events:none}
+.graphcontrols{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.graphcontrols label{font-size:11px;font-weight:800;color:var(--muted)}
+.graphcontrols select{border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--text);padding:6px 9px;font-weight:700;font-size:12px}
+.graphstack{display:grid;gap:12px}
+.graphcard{border:1px solid var(--line);border-radius:10px;background:var(--panel2);padding:10px;overflow:auto}
+.graphcard h4{margin:0 0 5px;font-size:13px;color:var(--navy)}
+.graphcard .graphnote{font-size:11px;color:var(--muted);margin-bottom:7px}
+.graphcard svg{display:block;min-width:1000px;width:100%;height:330px}
+.graphcard.hidden{display:none}
+.graphkey{display:flex;gap:13px;flex-wrap:wrap;margin:4px 0 8px;font-size:11px;color:var(--muted)}
+.graphkey i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.dailyaudit{display:grid;gap:10px}
+.auditday{border:1px solid var(--line);border-radius:10px;background:var(--panel2);overflow:hidden}
+.auditday summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--panel)}
+.auditday summary::-webkit-details-marker{display:none}
+.auditday .aud-date{font-size:15px;font-weight:900;color:var(--navy)}
+.auditday .aud-total{font-size:23px;font-weight:900;color:var(--std);white-space:nowrap}
+.auditday .aud-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.auditday .auditbody{padding:0 10px 10px}
+.auditday .auditbody table{font-size:11px}
+.startmatrix{overflow:auto}
+.startmatrix table{min-width:900px;border-collapse:separate;border-spacing:0;width:100%}
+.startmatrix th,.startmatrix td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px 9px;text-align:center}
+.startmatrix th{background:var(--soft);font-size:12px;color:var(--navy)}
+.startmatrix td:first-child,.startmatrix th:first-child{font-weight:900;background:var(--panel2);position:sticky;left:0;z-index:1}
+.startmatrix .missing{background:#fde9e7;color:#b42318;font-weight:900}
+.startmatrix .valid{font-weight:800}
+.calloutdays{display:grid;gap:12px}
+.calloutday{border:1px solid var(--line);border-radius:11px;overflow:hidden;background:var(--panel2)}
+.calloutdayhead{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;background:var(--panel);border-bottom:1px solid var(--line)}
+.calloutdate{font-size:17px;font-weight:950;color:var(--navy)}
+.callouttotals{font-size:12px;color:var(--muted);text-align:right}
+.calloutline{padding:10px 12px;border-bottom:1px solid var(--line)}
+.calloutline:last-child{border-bottom:0}
+.calloutlinehead{display:flex;justify-content:space-between;gap:10px;font-weight:900;color:var(--navy);margin-bottom:6px}
+.calloutrow{padding:7px 9px;margin:4px 0;border:1px solid var(--line);border-radius:7px;background:var(--panel);font-size:12px;line-height:1.35}
+.calloutrow b{color:var(--std)}
+.calloutmuted{color:var(--muted);font-size:11px}
+
+
+.pagebar{max-width:1700px;margin:14px auto 0;padding:0 18px;display:flex;gap:8px;flex-wrap:wrap}
+.pagebtn{border:1px solid var(--line);background:var(--panel);color:var(--text);padding:10px 15px;border-radius:9px;cursor:pointer;font-weight:900;box-shadow:var(--shadow)}
+.pagebtn.active{background:var(--navy);border-color:var(--navy);color:#fff}
+.apppage{display:none}.apppage.active{display:block}
+.breakhero{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(250px,.5fr);gap:12px}
+.breakcontrol{border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:13px}
+.breakcontrol label{display:block;font-size:12px;font-weight:900;color:var(--navy);margin-bottom:6px}
+.breakcontrol input{width:100%;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--text);padding:10px;font-weight:800}
+.breaksummary{display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:10px;margin-top:12px}
+.breaksummary .kpi{min-height:86px}
+.page2actions{display:flex;gap:8px;flex-wrap:wrap}
+.page2actions .smallbtn{padding:9px 12px}
+
+/* Page 1 v2.5 — decision-first Cream Usage Breakdown */
+#page-breakdown .panel{border:1px solid #aebed0;box-shadow:0 10px 28px rgba(24,59,91,.10)}
+#page-breakdown .sectiontitle h2{font-size:17px;color:#143a5b;letter-spacing:.1px}
+.dark #page-breakdown .sectiontitle h2{color:#9fd2f1}
+#page-breakdown .tablewrap{border:2px solid #9db2c8;border-radius:10px;max-height:none;background:var(--panel)}
+#page-breakdown table{border-collapse:separate;border-spacing:0}
+#page-breakdown th,#page-breakdown td{border-right:1px solid #b8c7d7;border-bottom:1px solid #c7d3df;padding:9px 10px}
+#page-breakdown th:last-child,#page-breakdown td:last-child{border-right:0}
+#page-breakdown thead th{background:linear-gradient(180deg,#24577d,#183b5b);color:#fff;font-size:11px;letter-spacing:.15px}
+#page-breakdown tbody tr:nth-child(even) td{background:#f6f9fc}
+.dark #page-breakdown tbody tr:nth-child(even) td{background:#1e2a36}
+#page-breakdown #breakDailyWrap td:nth-child(2){font-weight:950;text-align:center;background:#fff6d9}
+.dark #page-breakdown #breakDailyWrap td:nth-child(2){background:#3a321c}
+#page-breakdown #breakDailyWrap td:nth-child(3){font-weight:950;color:#0f5f76;background:#e9f7fa}
+.dark #page-breakdown #breakDailyWrap td:nth-child(3){background:#17343a;color:#8bd9e4}
+#page-breakdown #breakDailyWrap th:nth-child(4){background:linear-gradient(180deg,#367bb1,#255f8d)}
+#page-breakdown #breakDailyWrap th:nth-child(5){background:linear-gradient(180deg,#4f8e67,#33704d)}
+#page-breakdown #breakDailyWrap th:nth-child(6){background:linear-gradient(180deg,#b77c27,#8f5e1d)}
+#page-breakdown #breakDailyWrap th:nth-child(7){background:linear-gradient(180deg,#76528f,#5c3e73)}
+#page-breakdown .startmatrix{border:2px solid #9db2c8;border-radius:10px;overflow:auto}
+#page-breakdown .startmatrix th{background:linear-gradient(180deg,#d8eafb,#c8def2);color:#173b5b;border-color:#9db2c8}
+#page-breakdown .startmatrix td{border-color:#b8c7d7}
+#page-breakdown .startmatrix td:first-child{background:#fff3a8;color:#182638;font-size:13px}
+.dark #page-breakdown .startmatrix td:first-child{background:#665a19;color:#fff}
+.detailtablewrap{overflow:auto;border:2px solid #8ea9c4;border-radius:10px;background:var(--panel)}
+.runbreaktable{min-width:1660px;table-layout:fixed}
+.runbreaktable th:first-child,.runbreaktable td:first-child{width:92px;text-align:center!important;font-weight:950;vertical-align:top}
+.runbreaktable th:nth-child(2),.runbreaktable td:nth-child(2){width:120px;text-align:center!important}
+.runbreaktable th:nth-child(3),.runbreaktable td:nth-child(3){width:155px;text-align:right!important}
+.runbreaktable th:nth-child(n+4){text-align:left!important}
+.runbreaktable td{vertical-align:top;white-space:normal!important;text-align:left!important;padding:6px 7px}
+.runbreaktable .tankerHead{background:linear-gradient(180deg,#23899a,#176978)!important}
+.runbreaktable .creamTotalHead{background:linear-gradient(180deg,#16849b,#0e6679)!important}
+.runbreaktable .lineAHead{background:linear-gradient(180deg,#367bb1,#255f8d)!important}
+.runbreaktable .lineBHead{background:linear-gradient(180deg,#4f8e67,#33704d)!important}
+.runbreaktable .lineCHead{background:linear-gradient(180deg,#b77c27,#8f5e1d)!important}
+.runbreaktable .lineDHead{background:linear-gradient(180deg,#76528f,#5c3e73)!important}
+.runbreaktankers{font-size:13px;font-weight:950;color:#0f7183;background:rgba(14,165,183,.06)}
+.runbreakcreamtotal{font-size:12px;font-weight:950;color:var(--navy);background:rgba(36,87,125,.05)}
+.runbreakgrandtotal td{background:#ddf2e4!important;color:#215e36!important;font-weight:950!important;border-top:2px solid #173a5e!important;border-bottom:2px solid #173a5e!important;vertical-align:middle!important}
+.runbreakgrandlabel{text-align:center!important;letter-spacing:.2px}
+.runbreakcell{min-width:285px}
+.runbreaktotal{font-size:10.5px;font-weight:950;color:var(--navy);padding:0 0 4px;margin-bottom:3px;border-bottom:1px solid var(--soft)}
+.runentry{border:1px solid #c3cfdb;border-left:4px solid #367bb1;border-radius:6px;padding:5px 6px;margin:3px 0;background:#fff;line-height:1.22;color:#213044;font-size:11px}
+.dark .runentry{background:#18222d;color:#edf4fa;border-color:#3c4e60}
+.runentry.lineB{border-left-color:#4f8e67}.runentry.lineC{border-left-color:#b77c27}.runentry.lineD{border-left-color:#76528f}
+.runentry .item{font-weight:950;color:#123e62}.dark .runentry .item{color:#9fd2f1}
+.runentry .cases{font-weight:900}.runentry .cream{font-weight:900;color:#0f7183}
+.dark .runentry .cream{color:#8bd9e4}
+.runempty{color:var(--muted);font-style:italic;padding:8px 2px}
+.twotablelabel{display:inline-block;font-size:11px;font-weight:900;letter-spacing:.45px;text-transform:uppercase;color:#fff;background:#183b5b;border-radius:999px;padding:5px 9px;margin-bottom:7px}
+
+@media(max-width:850px){.breakhero{grid-template-columns:1fr}.breaksummary{grid-template-columns:1fr}}
+
+@media(max-width:1100px){.controls,.kpis{grid-template-columns:repeat(3,1fr)}.uploadgrid,.grid2,.settingsrow{grid-template-columns:1fr}.sitecards{grid-template-columns:1fr}}
+@media(max-width:650px){.controls,.kpis{grid-template-columns:1fr 1fr}.wrap{padding:10px}.title{font-size:18px}}
+
+.demo-banner{background:#e8f5ee;border:1px solid #9fc9ad;color:#205b36;padding:9px 14px;border-radius:9px;font-weight:800;margin-bottom:12px}
+.what-panel{border:1px solid #9db2c8;background:linear-gradient(135deg,#f7fbff,#eef6fb);border-radius:12px;padding:16px;margin-bottom:14px}
+.what-panel h2{margin:0 0 7px;color:#183b5b;font-size:18px}.what-panel p{margin:0;color:#425466;line-height:1.5}
+.demo-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}.demo-primary{background:#183b5b;color:white;border:0;border-radius:9px;padding:10px 16px;font-weight:900;cursor:pointer}.demo-primary:hover{background:#24577d}.sample-link{color:#24577d;font-weight:800;text-decoration:none;border:1px solid #b7c8d8;background:white;border-radius:8px;padding:8px 10px}
+.demo-insight{display:none;border-left:5px solid #b7791f;background:#fff8e8;border-radius:9px;padding:12px 14px;margin:12px 0;color:#5d4617}.demo-insight.show{display:block}.demo-insight b{color:#3d2e0f}
+.portfolio-note{font-size:11px;color:#687386;margin-top:6px}.portfolio-disabled{opacity:.45;pointer-events:none}
+.how-panel ol{margin:8px 0 0 22px;padding:0;line-height:1.5}.how-panel li{margin:5px 0}
+
+
+/* === Portfolio Aesthetic Excellence Upgrade === */
+:root{
+  --bg:#edf3f8;--panel:#ffffff;--panel2:#f6f9fc;--text:#132238;--muted:#68778a;
+  --navy:#123a5a;--navy2:#1e6388;--cyan:#06a6b8;--green:#138a62;--amber:#c98417;
+  --red:#c34141;--purple:#73529b;--line:#d3deea;--soft:#e8eff6;
+  --shadow:0 12px 34px rgba(18,58,90,.08);--shadow-lg:0 24px 70px rgba(18,58,90,.14);
+}
+html{scroll-behavior:smooth}
+body{font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:
+  radial-gradient(circle at 12% -10%,rgba(14,165,183,.12),transparent 28%),
+  radial-gradient(circle at 92% 8%,rgba(36,87,125,.12),transparent 26%),var(--bg);letter-spacing:-.005em}
+.topbar{background:linear-gradient(112deg,#0c2d48 0%,#164c70 56%,#0c6673 100%);padding:16px 24px;border-bottom:1px solid rgba(255,255,255,.12);box-shadow:0 10px 28px rgba(11,38,60,.18)}
+.title{font-size:22px;letter-spacing:-.35px}.subtitle{font-size:12px;opacity:.78}
+.btn{border-color:rgba(255,255,255,.22);background:rgba(255,255,255,.09);backdrop-filter:blur(8px);border-radius:10px;padding:8px 12px}
+.btn:hover{background:rgba(255,255,255,.16);transform:translateY(-1px)}
+.wrap{max-width:1680px;padding:20px 22px}
+.portfolio-shell{padding-top:24px}
+.showcase-hero{position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(360px,.65fr);gap:24px;padding:34px;border-radius:24px;background:linear-gradient(125deg,#0b2d49 0%,#154f70 55%,#0b6d74 100%);box-shadow:var(--shadow-lg);color:white}
+.showcase-hero:before{content:"";position:absolute;width:480px;height:480px;border-radius:50%;right:-210px;top:-260px;background:rgba(255,255,255,.08)}
+.showcase-hero:after{content:"";position:absolute;width:320px;height:320px;border-radius:50%;left:38%;bottom:-270px;background:rgba(6,166,184,.18)}
+.hero-copy,.decision-flow{position:relative;z-index:1}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;text-transform:uppercase;font-size:11px;letter-spacing:1.4px;font-weight:900;color:#bceff4;margin-bottom:15px}
+.hero-eyebrow span{width:8px;height:8px;border-radius:50%;background:#44e0c1;box-shadow:0 0 0 5px rgba(68,224,193,.12)}
+.showcase-hero h1{max-width:880px;font-size:clamp(34px,4vw,58px);line-height:1.02;letter-spacing:-1.7px;margin:0 0 16px;font-weight:900}
+.showcase-hero p{max-width:860px;font-size:17px;line-height:1.55;color:#d8e9f3;margin:0}
+.demo-actions{margin-top:24px;gap:10px}.demo-primary{background:linear-gradient(135deg,#31c7d2,#19a6bd);box-shadow:0 12px 28px rgba(0,0,0,.18);border-radius:12px;padding:12px 18px;font-size:14px;transition:.18s}
+.demo-primary:hover{background:linear-gradient(135deg,#43d2dc,#24b5c7);transform:translateY(-2px);box-shadow:0 16px 34px rgba(0,0,0,.22)}
+.showcase-hero .sample-link{color:#eefaff;background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);border-radius:11px;padding:10px 12px;transition:.18s}
+.showcase-hero .sample-link:hover{background:rgba(255,255,255,.14);transform:translateY(-1px)}
+.trust-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.trust-row span{font-size:11px;color:#cfe9f2;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);padding:6px 9px;border-radius:999px}.trust-row span:before{content:"✓";color:#5fe2c3;font-weight:950;margin-right:5px}
+.decision-flow{align-self:stretch;border:1px solid rgba(255,255,255,.16);background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.055));backdrop-filter:blur(14px);border-radius:18px;padding:20px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+.flow-title{text-transform:uppercase;letter-spacing:1.2px;font-size:10px;font-weight:900;color:#b9e9ef;margin-bottom:15px}
+.flow-step{display:flex;gap:12px;align-items:flex-start}.flow-num{width:32px;height:32px;flex:0 0 32px;border-radius:10px;display:grid;place-items:center;background:rgba(68,224,193,.13);border:1px solid rgba(68,224,193,.28);color:#8ff1dc;font-size:11px;font-weight:950}.flow-step b{display:block;font-size:14px}.flow-step small{display:block;color:#c8dce7;line-height:1.4;margin-top:3px;font-size:11px}.flow-line{height:18px;border-left:1px dashed rgba(255,255,255,.27);margin-left:16px}.flow-outcome{margin-top:18px;padding:12px 13px;border-radius:12px;background:rgba(8,25,39,.23);border:1px solid rgba(255,255,255,.1)}.flow-outcome b{font-size:12px;margin-left:6px}.flow-outcome small{display:block;color:#c7dbe6;margin-top:4px;line-height:1.4}.pulse-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#55e6bd;box-shadow:0 0 0 5px rgba(85,230,189,.11)}
+.executive-snapshot{margin-top:18px;padding:24px;border-radius:20px;background:rgba(255,255,255,.88);border:1px solid rgba(163,184,204,.65);box-shadow:var(--shadow);backdrop-filter:blur(10px)}
+.snapshot-head{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;margin-bottom:16px}.snapshot-kicker{text-transform:uppercase;letter-spacing:1.15px;font-size:10px;font-weight:950;color:#16869a}.snapshot-head h2{margin:5px 0 0;font-size:22px;letter-spacing:-.45px;color:#153a59}.snapshot-status{font-size:11px;font-weight:850;color:#627286;border:1px solid var(--line);padding:7px 10px;border-radius:999px;background:#f8fbfd;white-space:nowrap}.snapshot-status.live{color:#176949;background:#e9f7f1;border-color:#b7dfcd}.snapshot-status.risk{color:#8a5b0d;background:#fff6dd;border-color:#ecd29d}
+.portfolio-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.portfolio-metric{display:flex;gap:12px;align-items:center;min-height:108px;padding:16px;border-radius:16px;border:1px solid var(--line);background:linear-gradient(180deg,#fff,#f8fbfd);position:relative;overflow:hidden}.portfolio-metric:after{content:"";position:absolute;height:3px;left:0;right:0;bottom:0;background:var(--metric)}.portfolio-metric .metric-icon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:color-mix(in srgb,var(--metric) 11%,white);color:var(--metric);font-weight:950;font-size:18px}.portfolio-metric span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.72px;font-weight:900;color:#718095}.portfolio-metric strong{display:block;font-size:24px;line-height:1.1;margin-top:3px;color:#12283e}.portfolio-metric small{display:block;font-size:10.5px;color:#7b8998;margin-top:4px}.metric-blue{--metric:#2f76b0}.metric-cyan{--metric:#0f9cad}.metric-amber{--metric:#c6811e}.metric-green{--metric:#18895f}
+.insight-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(300px,.6fr);gap:14px;margin-top:14px}.allocation-visual,.action-card{border:1px solid var(--line);border-radius:16px;background:#fbfdff;padding:18px}.allocation-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:13px}.allocation-head span,.action-kicker{text-transform:uppercase;font-size:9.5px;letter-spacing:.9px;font-weight:950;color:#708195}.allocation-head h3,.action-card h3{font-size:16px;color:#153a59;margin:3px 0 0}.allocation-total{font-size:23px;font-weight:950;color:#153a59}.allocation-row{display:grid;grid-template-columns:160px 1fr 42px;gap:10px;align-items:center;margin:10px 0}.allocation-label b{font-size:11.5px;color:#1f3850}.allocation-label small{display:block;font-size:9.5px;color:#8190a0;margin-top:1px}.allocation-track{height:10px;background:#e9eff5;border-radius:999px;overflow:hidden}.allocation-track i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#147a9a,#28b9b9);transition:width .45s ease}.allocation-row strong{text-align:right;font-size:13px;color:#173a59}.allocation-caption{font-size:10px;color:#7e8b99;margin-top:12px;line-height:1.45}.action-card{background:linear-gradient(145deg,#102f49,#164d67);color:white;box-shadow:0 14px 30px rgba(16,47,73,.16)}.action-card .action-kicker{color:#a6d8e2}.action-card h3{color:white;font-size:20px;line-height:1.15;margin-top:8px}.action-card p{font-size:12px;color:#d5e6ee;line-height:1.55}.action-rule{margin-top:18px;padding-top:13px;border-top:1px solid rgba(255,255,255,.13)}.action-rule span{display:block;color:#9fc7d4;font-size:9px;text-transform:uppercase;letter-spacing:.9px;font-weight:900}.action-rule b{display:block;font-size:12px;margin-top:4px}.demo-insight{margin-top:14px;border-left:0;border:1px solid #ead19a;background:linear-gradient(90deg,#fff7df,#fffaf0);border-radius:14px;padding:13px 16px;box-shadow:0 8px 20px rgba(172,116,18,.07)}
+.pagebar{max-width:1680px;margin:16px auto 0;padding:0 22px;position:sticky;top:79px;z-index:12}.pagebar:before{content:"";position:absolute;inset:-8px 14px;background:rgba(237,243,248,.86);backdrop-filter:blur(14px);border-radius:16px;z-index:-1}.pagebtn{border-radius:999px;padding:10px 16px;background:#fff;border-color:#cbd8e5;box-shadow:0 7px 18px rgba(18,58,90,.07);transition:.18s}.pagebtn.active{background:linear-gradient(135deg,#143f60,#0f6e79);border-color:transparent;box-shadow:0 10px 22px rgba(18,58,90,.16)}.pagebtn:hover{transform:translateY(-1px)}
+.panel{border-radius:18px;border-color:#d4e0eb;box-shadow:0 10px 30px rgba(18,58,90,.065);padding:20px;margin-bottom:16px}.panel h2{font-size:17px;letter-spacing:-.2px}.sectiontitle h3{letter-spacing:-.1px}.note{border-left-width:3px;border-radius:10px;padding:10px 12px;background:#f6f9fc}.badge{background:#f8fbfd;border-color:#d7e1ea}.kpis{gap:12px}.kpi{min-height:102px;border-radius:14px;padding:15px;background:linear-gradient(180deg,#fff,#f7fafc);box-shadow:0 7px 17px rgba(18,58,90,.045)}.kpi .lab{font-size:9.5px;letter-spacing:.7px}.kpi .val{font-size:25px;letter-spacing:-.4px}.kpi.std{border-top:0;border-left:4px solid var(--std)}.kpi.org{border-top:0;border-left:4px solid var(--org)}
+.tablewrap,.detailtablewrap,.startmatrix{border-radius:12px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.7)}table{font-size:11.5px}th{background:linear-gradient(180deg,#174766,#123a5a);font-size:10px;text-transform:uppercase;letter-spacing:.35px;padding:9px 10px}td{padding:8px 10px}tbody tr:nth-child(even) td{background:rgba(240,246,250,.56)}tr:hover td{background:#eef7fb!important}.tab{border-radius:999px;padding:8px 12px;background:#f7fafc}.tab.active{background:linear-gradient(135deg,#143f60,#0e7080);border-color:transparent;box-shadow:0 7px 16px rgba(18,58,90,.12)}.sitecards{gap:12px}.sitecard{border-radius:15px;padding:15px;background:linear-gradient(180deg,#fff,#f7fafc);box-shadow:0 7px 18px rgba(18,58,90,.05)}.sitecard:first-child{background:linear-gradient(145deg,#133c5b,#0f6570);color:white;border:0}.sitecard:first-child .muted{color:#d2e4ec}.sitecard h4{font-size:11px;text-transform:uppercase;letter-spacing:.5px}.sitecard .big{font-size:24px}.auditday{border-radius:14px}.daycard{border-radius:14px;box-shadow:0 6px 15px rgba(18,58,90,.04)}.graphcard{border-radius:14px;background:#fbfdff}.runentry{border-radius:9px;padding:6px 7px}
+.portfolio-source-upload,.portfolio-input-panel{display:none!important}.showcase-mode .portfolio-disabled{display:none!important}.showcase-mode .breakhero{grid-template-columns:minmax(280px,430px)}.showcase-mode .breakcontrol{background:linear-gradient(180deg,#fafdff,#f2f7fb);border-radius:14px;padding:15px}.showcase-mode .breakcontrol input{font-size:17px;border-radius:10px}.model-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}.model-grid article{border:1px solid var(--line);border-radius:14px;padding:13px;background:linear-gradient(180deg,#fff,#f7fafc)}.model-grid article span{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;background:#e5f4f7;color:#087b8c;font-size:10px;font-weight:950}.model-grid article b{display:block;font-size:12px;color:#193b58;margin-top:9px}.model-grid article p{font-size:10.5px;color:#748397;line-height:1.45;margin:5px 0 0}.model-note{margin-top:10px}
+.footer{font-size:10px;letter-spacing:.2px}.how-panel{background:linear-gradient(145deg,#f8fbfd,#eef5f9)}.how-panel ol{columns:2;column-gap:36px}.how-panel li{break-inside:avoid;margin:7px 0;color:#506377}
+@media(max-width:1180px){.showcase-hero{grid-template-columns:1fr}.decision-flow{display:grid;grid-template-columns:1fr}.portfolio-metrics{grid-template-columns:repeat(2,1fr)}.insight-grid{grid-template-columns:1fr}.model-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:760px){.showcase-hero{padding:24px}.showcase-hero h1{font-size:36px}.portfolio-metrics{grid-template-columns:1fr}.snapshot-head{align-items:flex-start;flex-direction:column}.allocation-row{grid-template-columns:120px 1fr 36px}.model-grid{grid-template-columns:1fr}.pagebar{top:72px;padding:0 10px}.how-panel ol{columns:1}}
+
+</style>
+</head>
+<body class="showcase-mode">
+<div class="topbar">
+  <div class="toprow">
+    <div>
+      <div class="title">Cream Demand & Tanker Allocation</div>
+      <div class="subtitle">From production schedule to time-phased demand, site protection, and whole-load dispatch decisions</div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="themeBtn">Light / Dark</button>
+      <button class="btn" id="resetBtn">Reset</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="wrap portfolio-shell" id="portfolioIntro">
+  <section class="showcase-hero">
+    <div class="hero-copy">
+      <div class="hero-eyebrow"><span></span> Manufacturing planning portfolio demo</div>
+      <h1>Turn a weekly production schedule into a no-short whole-tanker dispatch plan.</h1>
+      <p>Time-phase cream demand across actual run windows, protect each destination balance, and expose when aggregate volume understates the physical delivery plan.</p>
+      <div class="demo-actions">
+        <button class="demo-primary" id="loadDemoBtn">Load Demo Data</button>
+        <a class="sample-link" href="sample_data/synthetic_schedule.csv" download>Sample Schedule</a>
+        <a class="sample-link" href="sample_data/synthetic_master.csv" download>Sample Item Master</a>
+        <a class="sample-link" href="sample_data/synthetic_bom.csv" download>Sample BOM</a>
+      </div>
+      <div class="trust-row">
+        <span>100% client-side</span><span>Synthetic data only</span><span>No network calls</span><span>No upload required</span>
+      </div>
+    </div>
+    <aside class="decision-flow" aria-label="Decision flow">
+      <div class="flow-title">Decision flow</div>
+      <div class="flow-step"><span class="flow-num">01</span><div><b>Time-phase demand</b><small>Cases × cream factor across each run's actual start and finish.</small></div></div>
+      <div class="flow-line"></div>
+      <div class="flow-step"><span class="flow-num">02</span><div><b>Protect site balances</b><small>Shared lines use one balance; independent destinations stay non-transferable.</small></div></div>
+      <div class="flow-line"></div>
+      <div class="flow-step"><span class="flow-num">03</span><div><b>Dispatch whole tankers</b><small>Order the next full load before the projected site shortage.</small></div></div>
+      <div class="flow-outcome"><span class="pulse-dot"></span><b>No-short objective</b><small>Every required receiving deadline is sequenced by earliest site need.</small></div>
+    </aside>
+  </section>
+
+  <section class="executive-snapshot" id="portfolioSnapshot">
+    <div class="snapshot-head">
+      <div><div class="snapshot-kicker">Executive snapshot</div><h2>See the operational gap between volume math and physical tanker reality.</h2></div>
+      <div class="snapshot-status" id="pfStatus">Load demo data to activate the scenario</div>
+    </div>
+    <div class="portfolio-metrics">
+      <article class="portfolio-metric metric-blue"><div class="metric-icon">∑</div><div><span>Normal cream demand</span><strong id="pfNormal">—</strong><small>time-phased scheduled requirement</small></div></article>
+      <article class="portfolio-metric metric-cyan"><div class="metric-icon">≈</div><div><span>Volume-equivalent loads</span><strong id="pfEquivalent">—</strong><small>aggregate capacity view</small></div></article>
+      <article class="portfolio-metric metric-amber"><div class="metric-icon">▰</div><div><span>Physical whole tankers</span><strong id="pfPhysical">—</strong><small>site-constrained dispatch plan</small></div></article>
+      <article class="portfolio-metric metric-green"><div class="metric-icon">✓</div><div><span>Earliest receiving deadline</span><strong id="pfDeadline">—</strong><small>protects the first site shortage</small></div></article>
+    </div>
+    <div class="insight-grid">
+      <div class="allocation-visual">
+        <div class="allocation-head"><div><span>Whole-tanker allocation</span><h3>Loads by destination</h3></div><div class="allocation-total" id="pfAllocationTotal">—</div></div>
+        <div class="allocation-row"><div class="allocation-label"><b>Shared Site 1</b><small>Lines A/B</small></div><div class="allocation-track"><i id="pfABBar"></i></div><strong id="pfABCount">—</strong></div>
+        <div class="allocation-row"><div class="allocation-label"><b>Site 2</b><small>Line C</small></div><div class="allocation-track"><i id="pfCBar"></i></div><strong id="pfCCount">—</strong></div>
+        <div class="allocation-row"><div class="allocation-label"><b>Site 3</b><small>Line D</small></div><div class="allocation-track"><i id="pfDBar"></i></div><strong id="pfDCount">—</strong></div>
+        <div class="allocation-caption">Each bar is a physical destination commitment. Leftover cream remains at that destination and cannot cover another site.</div>
+      </div>
+      <div class="action-card" id="pfActionCard">
+        <div class="action-kicker">Planner takeaway</div>
+        <h3 id="pfActionTitle">One number is not enough.</h3>
+        <p id="pfActionText">Aggregate tanker equivalents can look sufficient while a specific destination still runs short. Load the demo to see the constraint become visible.</p>
+        <div class="action-rule"><span>Priority rule</span><b>Earliest projected site shortage first</b></div>
+      </div>
+    </div>
+  </section>
+  <div class="demo-insight" id="demoInsight"></div>
+</div>
+<div class="pagebar">
+  <button class="pagebtn active" data-page="breakdown">Page 1 — Demand Breakdown</button>
+  <button class="pagebtn" data-page="full">Page 2 — Tanker Allocation</button>
+</div>
+
+<div class="apppage active" id="page-breakdown">
+<div class="wrap">
+  <div class="panel">
+    <div class="sectiontitle">
+      <h2 style="margin:0">1. Scenario Controls</h2>
+      <button class="smallbtn" id="breakDownloadBtn" disabled>Download Cream Usage Breakdown</button>
+    </div>
+    <div class="breakhero">
+      <div class="drop portfolio-source-upload" id="breakScheduleDrop">
+        <button class="clear-upload" id="breakClearScheduleBtn" type="button" disabled>Clear</button>
+        <strong>Schedule Workbook — REQUIRED</strong>
+        <div class="hint">Drop the weekly production schedule here. Page 1 reads 1A–6D, the exact S1 Start Date/Time, production Start/Finish, Cases, and Cream usage.</div>
+        <div class="file" id="breakScheduleFile">No schedule loaded</div>
+        <input id="breakScheduleInput" type="file" accept=".xlsx,.xlsm,.xls"/>
+      </div>
+      <div class="breakcontrol">
+        <label>Milk Tanker Size — 1 Tanker (lb)</label>
+        <input id="breakStdTank" type="number" min="1" step="100" value=""/>
+        <div class="hint" style="margin-top:8px;color:var(--muted)">Page 1 Tankers Required is a quick <b>volume-equivalent</b> view. Page 2 is the physical plan: whole tankers are assigned to a configured destination site and cannot be split between sites.</div>
+      </div>
+    </div>
+    <div class="statusline">
+      <span class="badge"><span class="dot" id="breakStatusDot"></span><span id="breakStatusText">Waiting for schedule</span></span>
+      <span class="badge">24-hour day = 12:00 AM → next 12:00 AM</span>
+      <span class="badge">Cross-midnight runs split by actual time</span>
+    </div>
+    <div class="preflight" id="breakPreflightWrap">
+      <h3>Cream Usage Breakdown cannot be calculated yet</h3>
+      <div><b>Date AND time are required for every active production row.</b> Unused schedule tabs may still show MISSING DATE/TIME in the matrix.</div>
+      <ul id="breakPreflightList"></ul>
+    </div>
+    <div class="breaksummary">
+      <div class="kpi std"><div class="lab">Normal Cream</div><div class="val" id="breakTotal">—</div><div class="sub">Organic excluded</div></div>
+      <div class="kpi std"><div class="lab">Tankers Required</div><div class="val" id="breakTankers">—</div><div class="sub" id="breakTankersSub">Configured whole-load volume-equivalent quick view</div></div>
+      <div class="kpi"><div class="lab">Earliest Production</div><div class="val" id="breakStart">—</div><div class="sub">First active production row</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="sectiontitle"><h2 style="margin:0">2. Schedule Start Date & Time — 1A through 6D</h2></div>
+    <div class="note" style="margin-bottom:10px"><b>This is the exact schedule-start matrix.</b> It mirrors each schedule sheet's S1. MISSING DATE/TIME is allowed when that schedule is unused; an active row with missing Start/Finish blocks the calculation.</div>
+    <div class="startmatrix" id="breakStartMatrixWrap"><div class="empty">Upload the schedule to show 1A–6D Start Date/Time.</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="sectiontitle"><h2 style="margin:0">3. Table 1 — Daily Cream Quick View</h2></div>
+    <div class="note" style="margin-bottom:10px"><span class="twotablelabel">Quick View</span><br>The first table is the compact planner view: Date, volume-equivalent Tankers Required, Total Normal Cream, and A/B/C/D line totals. For the physical whole-tanker destination plan, use Page 2.</div>
+    <div class="tablewrap" id="breakDailyWrap"><div class="empty">Upload the schedule to calculate daily Cream usage.</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="sectiontitle"><h2 style="margin:0">4. Table 2 — Daily Line Run Breakdown</h2></div>
+    <div class="note" style="margin-bottom:10px">This sits directly below the quick view. Each date repeats the <b>Tankers Required</b> and <b>Total Normal Cream</b>, then A/B/C/D show the actual runs in chronological order as <b>Item | Schedule | From–To | Cases in this date span (Cream lb)</b>. Cross-midnight runs are split at 12:00 AM.</div>
+    <div class="detailtablewrap" id="breakCalloutWrap"><div class="empty">Upload the schedule to build the line-by-line run table.</div></div>
+  </div>
+  <div class="footer">Page 1 — Demand Breakdown • synthetic portfolio scenario</div>
+</div>
+</div>
+
+<div class="apppage" id="page-full">
+<div class="wrap">
+  <div class="panel">
+    <div class="sectiontitle">
+      <h2 style="margin:0">Page 2 — Whole-Tanker Allocation & Site Balances</h2>
+      <div class="page2actions">
+        <button class="smallbtn" id="downloadCreamBreakdownBtn" disabled>Download Cream Usage Breakdown</button>
+        <button class="smallbtn" id="downloadPlanErrorsBtn" disabled>Download Page 2 Extract + Page 1 + Inputs</button>
+      </div>
+    </div>
+    <div class="note">Page 2 uses <b>continuous time-phased physical whole-tanker allocation</b>. Cream is consumed continuously from each run's Start through Finish. When a destination's projected balance reaches zero, the next full tanker is assigned to that destination. <b>Required at Receiving Point By = the projected site need/shortage time − Receiving Lead Time</b> using the configured receiving lead time. Every tanker is received at the central receiving point first, then transferred internally within that same lead-time window. One configured destination can serve multiple production lines; other configured destinations remain separate. A tanker is never split across sites; unused Cream stays at the assigned site and carries forward.</div>
+  </div>
+  <div class="panel portfolio-input-panel">
+    <h2>Production File Inputs</h2>
+    <div class="bulkdrop" id="bulkDrop">
+      <strong>Bulk Drag & Drop — Drop All Input Files Here</strong>
+      <div class="hint">Drop Schedule, Item Master, BOM, and Inventory files together. The dashboard will detect the file type and place each file into the correct slot automatically. You can also click here to choose multiple files.</div>
+      <div class="bulkstatus" id="bulkStatus">No bulk files loaded</div>
+      <input id="bulkInput" type="file" accept=".xlsx,.xlsm,.xls" multiple/>
+    </div>
+    <div class="uploadgrid">
+      <div class="drop" id="scheduleDrop">
+        <button class="clear-upload" id="clearScheduleBtn" type="button" disabled>Clear</button>
+        <strong>Schedule Workbook — REQUIRED</strong>
+        <div class="hint">Drag & drop here or click. weekly production schedule with 1A–6D sheets. Embedded Data / master is used automatically.</div>
+        <div class="file" id="scheduleFile">No schedule loaded</div>
+        <input id="scheduleInput" type="file" accept=".xlsx,.xlsm,.xls"/>
+      </div>
+      <div class="drop" id="masterDrop">
+        <button class="clear-upload" id="clearMasterBtn" type="button" disabled>Clear</button>
+        <strong>Item Master — OPTIONAL OVERRIDE</strong>
+        <div class="hint">Drag & drop here or click. If supplied, matching cream-per-case values override the schedule's embedded master.</div>
+        <div class="file" id="masterFile">No item master loaded</div>
+        <input id="masterInput" type="file" accept=".xlsx,.xlsm,.xls"/>
+      </div>
+      <div class="drop" id="bomDrop">
+        <button class="clear-upload" id="clearBomBtn" type="button" disabled>Clear</button>
+        <strong>BOM / Bill Detail — OPTIONAL, RECOMMENDED</strong>
+        <div class="hint">Drag & drop here or click. Used to identify the actual raw-cream component for each finished item. The configured Organic Cream ingredient component overrides text labels.</div>
+        <div class="file" id="bomFile">No BOM loaded</div>
+        <input id="bomInput" type="file" accept=".xlsx,.xlsm,.xls"/>
+      </div>
+      <div class="drop" id="ohDrop">
+        <button class="clear-upload" id="clearOhBtn" type="button" disabled>Clear</button>
+        <strong>Inventory — OPTIONAL, RECOMMENDED</strong>
+        <div class="hint">Drag & drop here or click. Used for component descriptions such as configured Normal and Organic Cream ingredient components. OH quantity is not consumed in Version 1.</div>
+        <div class="file" id="ohFile">No inventory file loaded</div>
+        <input id="ohInput" type="file" accept=".xlsx,.xlsm,.xls"/>
+      </div>
+    </div>
+    <div class="statusline">
+      <span class="badge"><span class="dot" id="statusDot"></span><span id="statusText">Waiting for schedule</span></span>
+      <span class="badge">A + B → one shared silo / one tanker destination</span>
+      <span class="badge">C → separate tanker destination</span>
+      <span class="badge">D → separate tanker destination</span>
+      <span class="badge">BOM + OH improve Normal/Organic classification</span>
+      <span class="badge">Export includes all loaded input sheets</span>
+    </div>
+    <div class="preflight" id="preflightWrap">
+      <h3>Schedule cannot be analyzed yet</h3>
+      <div><b>Valid Start and Finish timestamps are required for every scheduled production row.</b> 12:00 AM is valid. Only blank/invalid timing or Finish ≤ Start blocks the analysis.</div>
+      <ul id="preflightList"></ul>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="sectiontitle"><h2 style="margin:0">1. Schedule Start Date & Time Reference</h2></div>
+    <div class="note" style="margin-bottom:10px"><b>This mirrors each schedule sheet's S1 Start Date/Time.</b> “MISSING DATE/TIME” is informational when that schedule is simply not being used. Only a row with scheduled Cases but invalid Start/Finish timing blocks the Cream calculation.</div>
+    <div class="startmatrix" id="startMatrixWrap"><div class="empty">Upload the schedule to show 1A–6D Start Date/Time.</div></div>
+  </div>
+
+  <div class="panel">
+    <h2>2. Planning Model</h2>
+    <div class="controls">
+      <div class="control"><label>Receiving Lead Time (hours)</label><input id="leadHours" type="number" min="0" step=".5" value=""/></div>
+      <div class="control"><label>Milk Tanker Size — 1 Tanker (lb)</label><input id="stdTank" type="number" min="1" step="100" value=""/></div>
+      <div class="control"><label>Organic Tanker Size (lb)</label><input id="orgTank" type="number" min="1" step="100" value=""/></div>
+      <div class="control"><label>Additional Waste (%)</label><input id="wastePct" type="number" min="0" step=".1" value=""/></div>
+      <div class="control"><label>Usage Timing Model (graphs / audit)</label><select id="timingModel"><option value="linear">Linear cream use across run</option><option value="start">All cream at item start</option></select></div>
+    </div>
+    <div class="model-grid">
+      <article><span>01</span><b>Whole-load rule</b><p>Every tanker is assigned to one destination. Unused cream stays there and carries forward.</p></article>
+      <article><span>02</span><b>Continuous consumption</b><p>Cream is consumed from run start through finish; the next tanker is triggered only when a site balance would run out.</p></article>
+      <article><span>03</span><b>No-short priority</b><p>Dispatches are sequenced by the earliest projected site shortage so the plan protects every destination.</p></article>
+      <article><span>04</span><b>Receiving deadline</b><p>The tanker must be available at central receiving before the projected site need by the configured lead time.</p></article>
+    </div>
+    <div class="note model-note"><b>Current scenario assumption:</b> opening Normal Cream is 0 lb at each destination. Previously committed or in-transit tankers are intentionally reserved for a future version. Organic cream remains separate; oat materials are outside this dashboard.</div>
+  </div>
+
+  <div class="panel" id="summaryPanel">
+    <h2>3. Executive Summary</h2>
+    <div class="kpis">
+      <div class="kpi std"><div class="lab">Normal Cream</div><div class="val" id="kTotal">—</div><div class="sub" id="kTotalSub">Organic excluded</div></div>
+      <div class="kpi std"><div class="lab">Normal Cream Tankers</div><div class="val" id="kStd">—</div><div class="sub" id="kStdSub">whole loads assigned by site</div></div>
+      <div class="kpi org"><div class="lab">Organic Cream — Separate Page</div><div class="val" id="kOrg">—</div><div class="sub" id="kOrgSub">Not included in Normal page</div></div>
+      <div class="kpi"><div class="lab">Earliest Production</div><div class="val" id="kStart">—</div><div class="sub">schedule start</div></div>
+      <div class="kpi"><div class="lab">Earliest Receiving Deadline</div><div class="val" id="kReceipt">—</div><div class="sub">required at the receiving point</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="tabs">
+      <button class="tab active" data-tab="daily">Normal Cream — Main</button>
+      <button class="tab" data-tab="callout">Cream Usage Callout</button>
+      <button class="tab" data-tab="tankers">Whole-Tanker Dispatch</button>
+      <button class="tab" data-tab="organic">Organic Cream — Separate</button>
+      <button class="tab" data-tab="detail">Line / Item Detail</button>
+      <button class="tab" data-tab="quality">Data Quality</button>
+      <button class="tab" data-tab="rules">Zero-Cream Codes</button>
+    </div>
+
+    <div class="tabpage active" id="tab-daily">
+      <div class="sectiontitle">
+        <h3>NORMAL CREAM — Daily Requirement by Production Line</h3>
+        <button class="smallbtn" id="dailyCsv">Export Daily CSV</button>
+      </div>
+      <div class="note" style="margin-bottom:10px"><b>Decision view:</b> this page turns scheduled Normal Cream demand into a physical dispatch plan. Organic Cream is kept separate. Each full tanker is committed to one destination, and excess remains at that site.</div>
+      <div class="sectiontitle">
+        <h3>Normal Cream — Graph Analysis</h3>
+        <div class="graphcontrols">
+          <label for="graphSelect">Graph View</label>
+          <select id="graphSelect">
+            <option value="all" selected>All Useful Graphs</option>
+            <option value="cumulative">Cumulative Cream vs Tanker Capacity</option>
+            <option value="daily">Daily Cream Usage</option>
+            <option value="line">Daily Cream Usage by Line</option>
+            <option value="tankers">Whole Tankers Required at Receiving Point by Day</option>
+            <option value="dailycap">Daily Cream Usage vs Whole-Tanker Capacity Delivered</option>
+            <option value="buffer">End-of-Day Assigned Cream Remaining</option>
+          </select>
+        </div>
+      </div>
+      <div class="daystrip" id="dayCards"><div class="empty">Daily tanker cards will appear here.</div></div>
+      <div class="graphstack" id="graphStack">
+        <div class="graphcard" data-graph="cumulative" id="graph-cumulative"><div class="empty">Upload the schedule to draw the cumulative graph.</div></div>
+        <div class="graphcard" data-graph="daily" id="graph-daily"><div class="empty">Daily usage graph will appear here.</div></div>
+        <div class="graphcard" data-graph="line" id="graph-line"><div class="empty">Daily line graph will appear here.</div></div>
+        <div class="graphcard" data-graph="tankers" id="graph-tankers"><div class="empty">Daily tanker graph will appear here.</div></div>
+        <div class="graphcard" data-graph="dailycap" id="graph-dailycap"><div class="empty">Daily usage versus tanker capacity graph will appear here.</div></div>
+        <div class="graphcard" data-graph="buffer" id="graph-buffer"><div class="empty">Coverage cushion graph will appear here.</div></div>
+      </div>
+      <div style="height:14px"></div>
+      <div class="sectiontitle"><h3>Daily Normal Cream Use by Production Line</h3></div>
+      <div class="tablewrap" id="dailyWrap"><div class="empty">Upload the schedule to calculate daily cream.</div></div>
+      <div style="height:14px"></div>
+      <div class="sectiontitle"><h3>Daily Cream Audit — Total First, Breakdown Under It</h3><button class="smallbtn" id="dailyAuditCsv">Export Daily Audit CSV</button></div>
+      <div class="note" style="margin-bottom:10px">Each date shows the <b>total Normal Cream used that day</b>. Open it to see the Schedule / Line / Item rows that create the number. Runs crossing midnight are split proportionally by actual Start/Finish time.</div>
+      <div class="dailyaudit" id="dailyAuditWrap"><div class="empty">Daily schedule breakdown will appear here.</div></div>
+      <div style="height:12px"></div>
+      <div class="sectiontitle"><h3>NORMAL CREAM — Exact Destination-Site Delivery Deadlines</h3></div>
+      <div class="tablewrap" id="receivingWrap"><div class="empty">Tanker receiving dates will appear here.</div></div>
+    </div>
+
+
+    <div class="tabpage" id="tab-callout">
+      <div class="sectiontitle">
+        <h3>Cream Usage Breakdown — Case Callout Style</h3>
+        <button class="smallbtn" id="calloutCsv">Export Callout CSV</button>
+      </div>
+      <div class="note" style="margin-bottom:10px">Each calendar date is one 24-hour span (12:00 AM → next 12:00 AM). Each item line shows <b>Item | Schedule | From → To | Cases in this date span (Normal Cream lb)</b>. If a run crosses midnight, Cases and Cream are split proportionally into the correct date.</div>
+      <div class="calloutdays" id="creamCalloutWrap"><div class="empty">Upload the schedule to build the Cream Usage Callout.</div></div>
+    </div>
+
+    <div class="tabpage" id="tab-tankers">
+      <div class="sectiontitle">
+        <h3>Chronological Tanker Requirement</h3>
+        <button class="smallbtn" id="tankerCsv">Export Tanker Plan CSV</button>
+      </div>
+      <div class="note" style="margin-bottom:10px">
+        <b>This page is Normal Cream only.</b> Organic is excluded. Each vendor tanker is a physical whole load assigned to one destination: <b>one configured destination site</b>. A tanker is never split across sites. Opening Cream is 0 lb for this version; unused Cream remains at the assigned site.
+      </div>
+      <div class="sitecards" id="siteCards"></div>
+      <div style="height:12px"></div>
+      <div class="tablewrap" id="tankerWrap"><div class="empty">Upload the schedule to build the physical tanker dispatch plan.</div></div>
+      <div style="height:16px"></div>
+      <div class="sectiontitle"><h3>Site Balance Ledger — Opening + Tankers − Run Requirement</h3></div>
+      <div class="note" style="margin-bottom:10px">This is the non-transferable site balance. A/B share one balance. C and D each keep their own balance. Excess at one site cannot cover another site.</div>
+      <div id="siteLedgerWrap"><div class="empty">Upload the schedule to build the site balance ledger.</div></div>
+    </div>
+
+    <div class="tabpage" id="tab-organic">
+      <div class="sectiontitle"><h3>ORGANIC CREAM — Separate from Normal</h3></div>
+      <div class="note" style="margin-bottom:10px">
+        Organic Cream is completely separate. It does not count toward Normal Cream pounds, daily totals, or Normal tanker requirements.
+      </div>
+      <div class="sectiontitle"><h3>Organic Daily Requirement</h3></div>
+      <div class="tablewrap" id="organicDailyWrap"><div class="empty">Upload the schedule to calculate Organic Cream.</div></div>
+      <div style="height:14px"></div>
+      <div class="sectiontitle"><h3>Organic Exact Receiving Deadlines</h3></div>
+      <div class="tablewrap" id="organicReceivingWrap"><div class="empty">Organic tanker deadlines will appear here.</div></div>
+      <div style="height:14px"></div>
+      <div class="sectiontitle"><h3>Organic Scheduled Item Detail</h3></div>
+      <div class="tablewrap" id="organicDetailWrap"><div class="empty">Organic scheduled items will appear here.</div></div>
+    </div>
+
+    <div class="tabpage" id="tab-detail">
+      <div class="sectiontitle"><h3>Scheduled Item Cream Detail</h3></div>
+      <div class="tablewrap" id="detailWrap"><div class="empty">Scheduled items will appear here.</div></div>
+    </div>
+
+    <div class="tabpage" id="tab-quality">
+      <div class="sectiontitle"><h3>Data Quality / Missing Cream Factors</h3></div>
+      <div id="issueWrap"><div class="empty">No schedule loaded.</div></div>
+    </div>
+
+    <div class="tabpage" id="tab-rules">
+      <div class="settingsrow">
+        <div>
+          <div class="sectiontitle"><h3>Zero-Cream / Control Codes</h3></div>
+          <div class="note">Rows with these exact codes are forced to 0 cream even if they appear on a schedule. Edit the list and press Apply.</div>
+          <div style="margin-top:10px"><input id="excludeInput" style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--text)" value="FC, BFT, CF, HWF, HWF-LFCPH, OCO, LCO, IC, CIP, BFC"/></div>
+          <div style="margin-top:8px"><button class="smallbtn" id="applyExclude">Apply Codes</button></div>
+        </div>
+        <div>
+          <div class="sectiontitle"><h3>Active Exclusions</h3></div>
+          <div class="codebox" id="codeBox"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">Cream Demand & Tanker Allocation • synthetic portfolio demo • local browser execution.</div>
+</div>
+</div>
+
+
+
+<div class="wrap">
+  <div class="panel how-panel">
+    <h2>How It Works</h2>
+    <ol>
+      <li>Read scheduled production by line, quantity, start time, finish time, and cream-per-case requirement.</li>
+      <li>Split runs across calendar days when production crosses midnight so daily consumption is auditable.</li>
+      <li>Combine production lines mapped to a shared destination into one site balance while keeping the other configured destinations independent.</li>
+      <li>Consume cream continuously through each run instead of charging the full requirement at run start.</li>
+      <li>When a site would run out, assign one complete tanker to that destination; unused cream remains at that site.</li>
+      <li>Move each tanker deadline earlier by the configured receiving lead so the load is available at the central receiving point before production needs it.</li>
+      <li>Compare aggregate tanker equivalents with the physical site plan to expose extra loads caused by non-transferable site inventory.</li>
+    </ol>
+  </div>
+</div>
+
+<script src="config.demo.js"></script>
+<script src="engine.js"></script>
+<script src="demo.js"></script>
+</body>
+</html>

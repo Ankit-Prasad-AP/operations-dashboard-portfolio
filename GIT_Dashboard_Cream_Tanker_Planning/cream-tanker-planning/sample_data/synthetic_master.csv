@@ -1,0 +1,14 @@
+ItemCode,Description,CreamPerCase,ProductFamily,CreamType
+SKU-0001,Standard Whipped Product,4.40,Product Family 1,Standard
+SKU-0002,Standard Whipped Product,4.85,Product Family 1,Standard
+SKU-0003,Standard Whipped Product,4.10,Product Family 1,Standard
+SKU-0004,Standard Whipped Product,4.35,Product Family 1,Standard
+SKU-0005,Standard Whipped Product,4.55,Product Family 1,Standard
+SKU-0006,Standard Whipped Product,4.25,Product Family 1,Standard
+SKU-0007,Standard Whipped Product,4.70,Product Family 1,Standard
+SKU-0101,Standard Specialty Product,4.60,Product Family 2,Standard
+SKU-0102,Standard Specialty Product,5.20,Product Family 2,Standard
+SKU-0201,Standard Club Product,5.10,Product Family 3,Standard
+SKU-0202,Standard Club Product,4.95,Product Family 3,Standard
+SKU-0203,Standard Club Product,5.05,Product Family 3,Standard
+SKU-0901,Organic Demonstration Product,4.80,Product Family 5,Organic
