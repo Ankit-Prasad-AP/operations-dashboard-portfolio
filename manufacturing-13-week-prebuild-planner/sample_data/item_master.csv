@@ -1,0 +1,11 @@
+ItemCode,Description,PlanningClass,CanSize,CasesPerPallet,FormulaLbsPerCase,Formula
+SKU-0001,Product Family 1,PREBUILD,Small,120,7.8,FORMULA-01
+SKU-0002,Product Family 2,NORMAL,Large,96,9.4,FORMULA-02
+SKU-0003,Product Family 3,LIMITED,Small,144,8.1,FORMULA-03
+SKU-0004,Product Family 1,NORMAL,Large,84,10.2,FORMULA-04
+SKU-0005,Product Family 4,NORMAL,Small,120,7.2,FORMULA-05
+SKU-0006,Product Family 2,NORMAL,Large,90,9.8,FORMULA-02
+SKU-0007,Product Family 5,NORMAL,Small,144,6.9,FORMULA-06
+SKU-0008,Product Family 3,NORMAL,Large,96,8.7,FORMULA-07
+SKU-0009,Product Family 4,NORMAL,Small,120,7.6,FORMULA-08
+SKU-0010,Product Family 5,NORMAL,Large,,9.1,FORMULA-09
