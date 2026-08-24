@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Production Quantity & Material Readiness Planner</title>
+<style>
+:root{
+  --navy:#10263b;--navy-2:#173a58;--blue:#1e6aa8;--blue-2:#e9f3fb;--cyan:#e6f6f7;
+  --ink:#172b3a;--muted:#647789;--line:#dbe4ea;--bg:#f5f7f9;--panel:#fff;
+  --good:#1d7a55;--good-bg:#eaf7f0;--warn:#9b6800;--warn-bg:#fff6dd;--bad:#b83a31;--bad-bg:#fff0ee;
+  --violet:#6256a6;--violet-bg:#f0eefb;--shadow:0 18px 45px rgba(25,55,80,.08);
+  --shadow-sm:0 8px 22px rgba(25,55,80,.07);--r:18px;--r-sm:12px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:linear-gradient(180deg,#f8fafb 0,#f3f6f8 45%,#eef3f6 100%);color:var(--ink);font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:14px;line-height:1.45}
+button,input,select{font:inherit}
+button{cursor:pointer}
+a{color:inherit}
+.shell{min-height:100vh}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);border-bottom:1px solid rgba(219,228,234,.95)}
+.topbar-inner{max-width:1480px;margin:0 auto;height:72px;padding:0 24px;display:flex;align-items:center;gap:18px}
+.brandmark{width:38px;height:38px;border-radius:11px;background:linear-gradient(145deg,var(--navy),var(--blue));box-shadow:0 9px 20px rgba(30,106,168,.22);position:relative}
+.brandmark:before,.brandmark:after{content:"";position:absolute;background:#fff;border-radius:2px;opacity:.95}
+.brandmark:before{width:18px;height:3px;left:10px;top:11px;box-shadow:0 7px 0 #fff,0 14px 0 #fff}
+.brandmark:after{width:3px;height:18px;right:10px;top:10px;opacity:.45}
+.brand-copy{min-width:0}
+.brand{font-weight:820;letter-spacing:-.02em;font-size:16px;color:var(--navy)}
+.sub{color:var(--muted);font-size:11px;margin-top:2px}
+.nav{margin-left:auto;display:flex;gap:6px;padding:4px;border:1px solid var(--line);border-radius:12px;background:#f7f9fb}
+.nav button{border:0;background:transparent;color:#53697d;border-radius:9px;padding:9px 12px;font-weight:760;font-size:12px}
+.nav button.active{background:#fff;color:var(--navy);box-shadow:var(--shadow-sm)}
+.demo-chip{margin-left:4px;padding:7px 10px;border-radius:999px;background:var(--good-bg);color:var(--good);border:1px solid #c9e6d7;font-size:10px;font-weight:800;letter-spacing:.03em;text-transform:uppercase}
+main{max-width:1480px;margin:0 auto;padding:22px 24px 38px}
+.hero{position:relative;overflow:hidden;background:linear-gradient(125deg,#10263b 0%,#163f61 58%,#1b6d96 100%);color:#fff;border-radius:24px;padding:28px 30px;box-shadow:0 26px 70px rgba(16,38,59,.18);margin-bottom:18px}
+.hero:before{content:"";position:absolute;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(122,214,224,.24),rgba(122,214,224,0) 67%);right:-110px;top:-190px}
+.hero:after{content:"";position:absolute;inset:auto 0 0 0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.32),transparent)}
+.hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(330px,.7fr);gap:28px;align-items:center}
+.eyebrow{display:flex;align-items:center;gap:8px;text-transform:uppercase;letter-spacing:.12em;font-size:10px;font-weight:850;color:#bfe4ee}
+.eyebrow-dot{width:7px;height:7px;border-radius:50%;background:#78d6c5;box-shadow:0 0 0 5px rgba(120,214,197,.13)}
+.hero h1{font-size:34px;line-height:1.08;letter-spacing:-.035em;margin:10px 0 10px;max-width:820px}
+.hero p{margin:0;color:#d9e7ef;max-width:810px;font-size:14px;line-height:1.65}
+.hero-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.btn{border:1px solid #cbd8e2;background:#fff;color:#274258;border-radius:11px;padding:10px 13px;font-weight:780;font-size:12px;transition:.15s ease;box-shadow:0 3px 8px rgba(24,50,74,.04)}
+.btn:hover{transform:translateY(-1px);box-shadow:0 10px 20px rgba(24,50,74,.09)}
+.btn.primary{background:linear-gradient(135deg,#2d80bd,#1b639c);border-color:#1d669f;color:#fff}
+.btn.ghost{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.25);box-shadow:none}
+.btn.soft{background:#f5f9fc}
+.hero-actions .btn.primary{background:#fff;color:var(--navy);border-color:#fff}
+.hero-actions .btn.ghost:hover{background:rgba(255,255,255,.13)}
+.flow-card{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:16px;backdrop-filter:blur(8px)}
+.flow-title{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#b9d7e6;font-weight:800;margin-bottom:10px}
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.flow-step{position:relative;padding:10px 7px;border-radius:10px;background:rgba(255,255,255,.08);text-align:center}
+.flow-step b{display:block;font-size:11px;color:#fff}.flow-step span{display:block;font-size:9px;color:#bcd2df;margin-top:3px}
+.flow-step:not(:last-child):after{content:"›";position:absolute;right:-7px;top:16px;color:#90bfd0;font-size:18px;z-index:2}
+.demo-note{position:relative;z-index:1;margin-top:12px;color:#cde5ed;font-size:10px;display:flex;align-items:center;gap:7px}
+.demo-note:before{content:"";width:6px;height:6px;border-radius:50%;background:#70d7bc}
+.page[hidden]{display:none}
+.page-head{display:flex;justify-content:space-between;align-items:end;gap:18px;margin:22px 2px 12px}
+.page-head h2{font-size:20px;letter-spacing:-.025em;margin:0;color:var(--navy)}
+.page-head p{margin:4px 0 0;color:var(--muted);font-size:12px}
+.head-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.statusline{font-size:10px;font-weight:830;padding:7px 10px;border-radius:999px;border:1px solid var(--line);background:#fff}
+.statusline.clean{color:var(--good);border-color:#c7e4d4;background:var(--good-bg)}
+.statusline.dirty{color:var(--bad);border-color:#f0c7c3;background:var(--bad-bg)}
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(160px,1fr));gap:12px;margin-bottom:14px}
+.card{background:var(--panel);border:1px solid rgba(219,228,234,.95);border-radius:var(--r);box-shadow:var(--shadow-sm)}
+.kpi{padding:16px 16px 15px;min-height:132px;position:relative;overflow:hidden}
+.kpi:after{content:"";position:absolute;width:110px;height:110px;border-radius:50%;right:-55px;top:-58px;background:radial-gradient(circle,rgba(30,106,168,.10),rgba(30,106,168,0) 70%)}
+.kpi-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.kpi-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:850}
+.kpi-icon{width:28px;height:28px;border-radius:9px;background:var(--blue-2);display:grid;place-items:center;color:var(--blue);font-size:13px;font-weight:850}
+.kpi-value{display:block;margin-top:9px;font-weight:850;letter-spacing:-.035em;font-size:27px;color:var(--navy)}
+.kpi-note{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.4}
+.kpi.goodtone .kpi-icon{background:var(--good-bg);color:var(--good)}.kpi.warntone .kpi-icon{background:var(--warn-bg);color:var(--warn)}.kpi.badtone .kpi-icon{background:var(--bad-bg);color:var(--bad)}
+.mini-bar{height:4px;background:#edf1f4;border-radius:99px;margin-top:11px;overflow:hidden}.mini-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#4a9bd2,#6dc7cb)}
+.grid-2{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(330px,.65fr);gap:14px;margin-bottom:14px}
+.panel{padding:18px}
+.panel-head{display:flex;align-items:start;justify-content:space-between;gap:16px;margin-bottom:14px}
+.panel-title{font-size:14px;font-weight:840;color:var(--navy);letter-spacing:-.015em}
+.panel-sub{font-size:10px;color:var(--muted);margin-top:3px}
+.info-tip{position:relative;width:20px;height:20px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-size:10px;color:var(--muted);font-weight:850;background:#fff}
+.info-tip:hover:after{content:attr(data-tip);position:absolute;right:0;top:26px;width:245px;background:var(--navy);color:#fff;border-radius:10px;padding:9px 10px;font-size:10px;line-height:1.45;font-weight:500;box-shadow:var(--shadow);z-index:30}
+.chart{min-height:230px}
+.week-bars{display:grid;grid-template-columns:repeat(5,1fr);gap:18px;align-items:end;height:180px;padding:10px 8px 0;border-bottom:1px solid var(--line);background:linear-gradient(to top,rgba(219,228,234,.35) 1px,transparent 1px);background-size:100% 25%}
+.week-col{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:8px}
+.week-value{font-size:10px;font-weight:800;color:var(--navy)}
+.bar-shell{height:135px;width:min(58px,70%);display:flex;align-items:flex-end}
+.bar{width:100%;border-radius:10px 10px 3px 3px;background:linear-gradient(180deg,#69c2c9,#2678b0);box-shadow:0 8px 18px rgba(38,120,176,.18);min-height:5px;position:relative;transition:.25s}
+.bar:hover{filter:saturate(1.12) brightness(1.02);transform:translateY(-2px)}
+.week-label{font-size:10px;color:var(--muted);font-weight:740;text-align:center}
+.legend-row{display:flex;gap:14px;align-items:center;margin-top:12px;font-size:10px;color:var(--muted)}
+.legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;background:#3d90bc}
+.coverage-list{display:flex;flex-direction:column;gap:11px}
+.coverage-row{padding:10px 11px;border:1px solid #e4ebf0;border-radius:12px;background:#fbfcfd}
+.coverage-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.coverage-name{font-size:10px;color:#4a6072;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px}
+.coverage-pct{font-size:10px;font-weight:850;color:var(--navy)}
+.progress{height:6px;background:#edf1f4;border-radius:99px;overflow:hidden;margin-top:7px}.progress i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#55b496,#69c7ca)}
+.coverage-row.risk .progress i{background:linear-gradient(90deg,#d6a83b,#e07857)}.coverage-row.risk .coverage-pct{color:var(--warn)}
+.decision-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.decision{padding:14px 15px;display:flex;gap:12px;align-items:flex-start}
+.decision-num{width:32px;height:32px;flex:0 0 32px;border-radius:10px;display:grid;place-items:center;font-weight:850;background:var(--blue-2);color:var(--blue)}
+.decision b{display:block;font-size:11px;color:var(--navy)}.decision span{display:block;font-size:10px;color:var(--muted);margin-top:3px;line-height:1.4}
+.table-card{overflow:hidden;margin-bottom:14px}
+.table-toolbar{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fcfdfe}
+.table-toolbar .label{font-size:10px;font-weight:850;color:var(--navy)}
+.sample-links{display:flex;gap:7px;flex-wrap:wrap}
+.sample-links a{font-size:9px;text-decoration:none;padding:5px 7px;border:1px solid var(--line);background:#fff;border-radius:7px;color:#4d6577}
+.sample-links a:hover{border-color:#9ebbd0;color:var(--blue)}
+.tablewrap{overflow:auto;max-height:520px}
+.tbl{border-collapse:separate;border-spacing:0;min-width:100%;white-space:nowrap;font-size:11px}
+.tbl th,.tbl td{border-right:1px solid #edf1f4;border-bottom:1px solid #e6ecef;padding:9px 10px;height:38px}
+.tbl th{position:sticky;top:0;z-index:5;background:#f2f6f9;color:#52687a;font-size:9px;text-transform:uppercase;letter-spacing:.045em;text-align:center;cursor:pointer;user-select:none;font-weight:850}
+.tbl th:hover{background:#e9f1f6}.tbl th.col-selected{background:#ffe9a8!important;color:#6d5300}.tbl td.col-selected{background:#fff7d9!important}
+.tbl tbody tr:hover td{background:#f8fbfd}.tbl td:first-child,.tbl th:first-child{position:sticky;left:0;z-index:4;background:#fff;font-weight:830}.tbl th:first-child{z-index:7;background:#e8f0f5}.tbl tbody tr:hover td:first-child{background:#f8fbfd}
+.num{text-align:right}.editable{width:76px;border:1px solid #c7d5df;border-radius:7px;padding:5px 6px;text-align:right;background:#fffdf5;color:var(--ink)}.editable:focus{outline:2px solid #74aeda;border-color:transparent}
+.good{color:var(--good);font-weight:820}.bad{color:var(--bad);font-weight:820}.warntext{color:var(--warn);font-weight:820}.muted{color:var(--muted)}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:999px;font-size:9px;font-weight:850;letter-spacing:.02em}
+.badge:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.badge.good{background:var(--good-bg)}.badge.warn{background:var(--warn-bg)}.badge.bad{background:var(--bad-bg)}.badge.info{background:var(--blue-2);color:var(--blue)}
+.readiness-grid{display:grid;grid-template-columns:360px minmax(0,1fr);gap:14px;margin-bottom:14px}
+.donut-wrap{display:flex;align-items:center;gap:22px;min-height:230px}
+.donut{width:160px;height:160px;border-radius:50%;position:relative;background:conic-gradient(var(--good) 0 0%,var(--warn) 0 0%,var(--bad) 0 100%);flex:0 0 160px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.02)}
+.donut:after{content:"";position:absolute;inset:20px;border-radius:50%;background:#fff;box-shadow:0 0 0 1px var(--line)}
+.donut-center{position:absolute;inset:0;display:grid;place-items:center;z-index:2;text-align:center}.donut-center b{font-size:27px;line-height:1;color:var(--navy)}.donut-center span{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:850;margin-top:4px;display:block}
+.donut-legend{display:flex;flex-direction:column;gap:10px;min-width:130px}.donut-item{display:flex;align-items:center;justify-content:space-between;gap:14px;font-size:10px}.donut-item span:first-child{color:var(--muted)}.donut-item b{color:var(--navy)}
+.action-list{display:flex;flex-direction:column;gap:9px}
+.action-card{border:1px solid #e3eaee;border-radius:13px;padding:11px 12px;background:#fbfcfd;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center}
+.action-rank{width:27px;height:27px;border-radius:9px;background:var(--bad-bg);color:var(--bad);display:grid;place-items:center;font-size:10px;font-weight:850}
+.action-main b{display:block;font-size:10px;color:var(--navy)}.action-main span{display:block;font-size:9px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.action-qty{text-align:right}.action-qty b{display:block;font-size:11px;color:var(--bad)}.action-qty span{font-size:8px;color:var(--muted)}
+.risk-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,.8fr);gap:14px;margin-bottom:14px}
+.risk-bars{display:flex;flex-direction:column;gap:10px}
+.risk-row{display:grid;grid-template-columns:80px minmax(0,1fr) 42px;gap:10px;align-items:center;font-size:10px}
+.risk-row label{color:#536a7c;font-weight:760}.risk-track{height:10px;background:#edf1f3;border-radius:99px;overflow:hidden}.risk-track i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#d55b50,#e3a33d)}.risk-row b{text-align:right;color:var(--navy)}
+.timeline{position:relative;margin-top:8px;padding-left:18px}
+.timeline:before{content:"";position:absolute;left:4px;top:6px;bottom:6px;width:2px;background:#dce7ed}
+.timeline-item{position:relative;padding:0 0 13px 14px}.timeline-item:before{content:"";position:absolute;left:-18px;top:4px;width:9px;height:9px;border-radius:50%;background:#5ea7c2;border:3px solid #eaf5f8}
+.timeline-item b{font-size:10px;color:var(--navy);display:block}.timeline-item span{font-size:9px;color:var(--muted);display:block;margin-top:2px}
+.filter-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.filter-btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 8px;font-size:9px;font-weight:800;color:#566c7e}.filter-btn.active{background:var(--navy);border-color:var(--navy);color:#fff}
+.section{margin-top:18px}.section-head{display:flex;align-items:end;justify-content:space-between;gap:14px;margin:0 2px 9px}.section-head h3{margin:0;font-size:14px;color:var(--navy)}.section-head p{margin:3px 0 0;font-size:10px;color:var(--muted)}
+.how{margin-top:14px;padding:18px}.how-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}.how-step{padding:13px;border:1px solid #e3eaee;border-radius:13px;background:#fbfcfd}.how-step .n{font-size:9px;font-weight:850;color:var(--blue);text-transform:uppercase;letter-spacing:.08em}.how-step b{display:block;font-size:10px;color:var(--navy);margin-top:5px}.how-step span{display:block;font-size:9px;color:var(--muted);line-height:1.45;margin-top:3px}
+.footer{font-size:9px;color:#738391;text-align:center;padding:18px 0 5px}
+.skeleton{padding:28px;text-align:center;color:var(--muted);font-size:11px}
+@media(max-width:1100px){.hero-grid{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(3,1fr)}.grid-2,.readiness-grid,.risk-grid{grid-template-columns:1fr}.decision-strip{grid-template-columns:1fr}.how-steps{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){.topbar-inner{height:auto;padding:12px 14px;flex-wrap:wrap}.nav{margin-left:0;order:3;width:100%}.nav button{flex:1}.demo-chip{margin-left:auto}.brand-sub{display:none}main{padding:14px}.hero{padding:22px 18px;border-radius:18px}.hero h1{font-size:27px}.flow{grid-template-columns:repeat(2,1fr)}.flow-step:after{display:none}.kpis{grid-template-columns:repeat(2,1fr)}.page-head{align-items:flex-start;flex-direction:column}.how-steps{grid-template-columns:1fr}.donut-wrap{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brandmark" aria-hidden="true"></div>
+      <div class="brand-copy">
+        <div class="brand" id="appTitle"></div>
+        <div class="sub">Production plan → material-ready execution</div>
+      </div>
+      <div class="nav" role="tablist" aria-label="Dashboard pages">
+        <button class="active" id="navPlan">Production Plan</button>
+        <button id="navMat">Material Readiness</button>
+      </div>
+      <div class="demo-chip">Synthetic Demo</div>
+    </div>
+  </div>
+
+  <main>
+    <section class="hero">
+      <div class="hero-grid">
+        <div>
+          <div class="eyebrow"><span class="eyebrow-dot"></span> Operations decision system</div>
+          <h1>Turn a weekly production plan into a material-ready execution schedule.</h1>
+          <p>See planned quantity, forecast context, inventory coverage, dated purchase-order timing, and bill-of-material demand in one decision view. The tool identifies which runs are ready, which should move later, and where new supply is required.</p>
+          <div class="hero-actions">
+            <button class="btn primary" id="loadDemo">Load Demo Data</button>
+            <button class="btn ghost" id="jumpDecision">See Material Decisions</button>
+          </div>
+          <div class="demo-note">Demo mode · synthetic data · nothing leaves your browser</div>
+        </div>
+        <div class="flow-card">
+          <div class="flow-title">Decision flow</div>
+          <div class="flow">
+            <div class="flow-step"><b>Plan</b><span>Weekly cases</span></div>
+            <div class="flow-step"><b>Translate</b><span>Bill-of-material demand</span></div>
+            <div class="flow-step"><b>Check</b><span>Inventory + dated supply</span></div>
+            <div class="flow-step"><b>Act</b><span>Run / move / buy</span></div>
+          </div>
+          <div class="demo-note">Designed to compress cross-file planning into one operational decision.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pagePlan" class="page">
+      <div class="page-head">
+        <div><h2>Production Plan</h2><p>Balance demand, finished goods, and weekly production before checking material readiness.</p></div>
+        <div class="head-actions">
+          <button class="btn soft" id="resetPlan">Reset Demo</button>
+          <span id="planStatus" class="statusline clean">Load demo data to begin.</span>
+        </div>
+      </div>
+
+      <div class="kpis">
+        <div class="card kpi"><div class="kpi-top"><span class="kpi-label">Products in plan</span><span class="kpi-icon">01</span></div><b class="kpi-value" id="kItems">0</b><div class="kpi-note">Products with forecast and production context.</div><div class="mini-bar"><i id="barItems" style="width:0%"></i></div></div>
+        <div class="card kpi"><div class="kpi-top"><span class="kpi-label">Planned cases</span><span class="kpi-icon">02</span></div><b class="kpi-value" id="kPlan">0</b><div class="kpi-note">Total non-zero cases across the planning horizon.</div><div class="mini-bar"><i id="barPlan" style="width:0%"></i></div></div>
+        <div class="card kpi goodtone"><div class="kpi-top"><span class="kpi-label">Forecast coverage</span><span class="kpi-icon">%</span></div><b class="kpi-value" id="kCoverage">0%</b><div class="kpi-note">Finished goods plus plan compared with forecast.</div><div class="mini-bar"><i id="barCoverage" style="width:0%"></i></div></div>
+        <div class="card kpi"><div class="kpi-top"><span class="kpi-label">Finished Goods On Hand</span><span class="kpi-icon">OH</span></div><b class="kpi-value" id="kFG">0</b><div class="kpi-note">Inventory available before future production.</div><div class="mini-bar"><i id="barFG" style="width:0%"></i></div></div>
+        <div class="card kpi warntone"><div class="kpi-top"><span class="kpi-label">Remaining plan gap</span><span class="kpi-icon">!</span></div><b class="kpi-value" id="kGap">0</b><div class="kpi-note">Forecast not yet covered by finished goods and entered plan.</div><div class="mini-bar"><i id="barGap" style="width:0%"></i></div></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card panel">
+          <div class="panel-head">
+            <div><div class="panel-title">Weekly Production Cadence</div><div class="panel-sub">Where the plan is concentrated across the five-week horizon.</div></div>
+            <span class="info-tip" data-tip="Bars sum all planned cases in each week. A concentrated week may increase shared-material pressure.">i</span>
+          </div>
+          <div id="weeklyChart" class="chart"><div class="skeleton">Load demo data to view production cadence.</div></div>
+        </div>
+        <div class="card panel">
+          <div class="panel-head">
+            <div><div class="panel-title">Coverage by Product</div><div class="panel-sub">Forecast covered by finished goods plus planned production.</div></div>
+            <span class="info-tip" data-tip="Coverage above 100% means the entered plan and inventory exceed the synthetic forecast.">i</span>
+          </div>
+          <div id="coverageList" class="coverage-list"><div class="skeleton">No coverage view yet.</div></div>
+        </div>
+      </div>
+
+      <div class="decision-strip">
+        <div class="card decision"><span class="decision-num">1</span><div><b>Set the plan</b><span>Enter only the quantities you intend to make. Production is the starting point for material demand.</span></div></div>
+        <div class="card decision"><span class="decision-num">2</span><div><b>Protect timing</b><span>Material readiness is evaluated against the planned run date and dated inbound supply.</span></div></div>
+        <div class="card decision"><span class="decision-num">3</span><div><b>Recheck after edits</b><span>Any quantity change marks material analysis stale so decisions never rely on an old plan.</span></div></div>
+      </div>
+
+      <div class="card table-card">
+        <div class="table-toolbar">
+          <span class="label">Detailed Production Plan</span>
+          <div class="sample-links">
+            <a href="sample_data/production_plan.csv" download>Production plan CSV</a>
+            <a href="sample_data/bom.csv" download>Bill of materials CSV</a>
+            <a href="sample_data/material_inventory.csv" download>Inventory CSV</a>
+            <a href="sample_data/purchase_orders.csv" download>PO CSV</a>
+          </div>
+          <div style="margin-left:auto;font-size:9px;color:var(--muted)">Tip: click multiple column headers to highlight them together.</div>
+        </div>
+        <div class="tablewrap"><table class="tbl" id="planTable"></table></div>
+      </div>
+    </section>
+
+    <section id="pageMat" class="page" hidden>
+      <div class="page-head">
+        <div><h2>Material Readiness</h2><p>Translate the plan into material demand and turn shortages into clear run-date or buying actions.</p></div>
+        <div class="head-actions">
+          <button class="btn primary" id="runMaterial">Run Material Check</button>
+          <button class="btn soft" id="exportDecision">Export Decision Summary</button>
+          <span id="matStatus" class="statusline dirty">No material check has been run.</span>
+        </div>
+      </div>
+
+      <div class="kpis">
+        <div class="card kpi"><div class="kpi-top"><span class="kpi-label">Runs analyzed</span><span class="kpi-icon">R</span></div><b class="kpi-value" id="mRuns">0</b><div class="kpi-note">Only non-zero production is analyzed.</div><div class="mini-bar"><i id="barRuns" style="width:0%"></i></div></div>
+        <div class="card kpi goodtone"><div class="kpi-top"><span class="kpi-label">Ready on plan</span><span class="kpi-icon">✓</span></div><b class="kpi-value" id="mCovered">0</b><div class="kpi-note">All blocking materials available on the planned date.</div><div class="mini-bar"><i id="barCovered" style="width:0%"></i></div></div>
+        <div class="card kpi warntone"><div class="kpi-top"><span class="kpi-label">Move-date actions</span><span class="kpi-icon">→</span></div><b class="kpi-value" id="mMove">0</b><div class="kpi-note">Covered later after a dated purchase order.</div><div class="mini-bar"><i id="barMove" style="width:0%"></i></div></div>
+        <div class="card kpi badtone"><div class="kpi-top"><span class="kpi-label">New-supply actions</span><span class="kpi-icon">PO</span></div><b class="kpi-value" id="mPO">0</b><div class="kpi-note">No sufficient future purchase order is available.</div><div class="mini-bar"><i id="barPO" style="width:0%"></i></div></div>
+        <div class="card kpi"><div class="kpi-top"><span class="kpi-label">Readiness rate</span><span class="kpi-icon">%</span></div><b class="kpi-value" id="mReadiness">0%</b><div class="kpi-note">Share of planned runs ready on their intended date.</div><div class="mini-bar"><i id="barReadiness" style="width:0%"></i></div></div>
+      </div>
+
+      <div class="readiness-grid">
+        <div class="card panel">
+          <div class="panel-head"><div><div class="panel-title">Execution Readiness</div><div class="panel-sub">At-a-glance run disposition across the plan.</div></div><span class="info-tip" data-tip="Ready means every blocking material is covered on the planned date. Move-date actions rely on known inbound supply.">i</span></div>
+          <div class="donut-wrap">
+            <div class="donut" id="readinessDonut"><div class="donut-center"><div><b id="donutPct">0%</b><span>Ready now</span></div></div></div>
+            <div class="donut-legend">
+              <div class="donut-item"><span>Ready</span><b id="legReady">0</b></div>
+              <div class="donut-item"><span>Move date</span><b id="legMove">0</b></div>
+              <div class="donut-item"><span>Future / new supply</span><b id="legSupply">0</b></div>
+            </div>
+          </div>
+        </div>
+        <div class="card panel">
+          <div class="panel-head"><div><div class="panel-title">Action Queue</div><div class="panel-sub">Highest-priority exceptions translated into planner actions.</div></div><span class="info-tip" data-tip="The queue ranks shortage records by shortage magnitude. It is a decision aid, not a purchasing authorization.">i</span></div>
+          <div id="actionQueue" class="action-list"><div class="skeleton">Run the material check to populate the action queue.</div></div>
+        </div>
+      </div>
+
+      <div class="risk-grid">
+        <div class="card panel">
+          <div class="panel-head"><div><div class="panel-title">Risk by Material Category</div><div class="panel-sub">Where blocking shortages are concentrated.</div></div></div>
+          <div id="riskBars" class="risk-bars"><div class="skeleton">No risk distribution yet.</div></div>
+        </div>
+        <div class="card panel">
+          <div class="panel-head"><div><div class="panel-title">Inbound Supply Timeline</div><div class="panel-sub">Synthetic dated purchase orders that may unlock future production.</div></div></div>
+          <div id="poTimeline" class="timeline"><div class="skeleton">Load demo data to view inbound supply.</div></div>
+        </div>
+      </div>
+
+      <div class="section" id="readinessSection">
+        <div class="section-head">
+          <div><h3>Run Readiness</h3><p>Shared material on the same date is allocated from maximum requirement to minimum requirement.</p></div>
+          <div class="filter-row" id="runFilters">
+            <button class="filter-btn active" data-filter="ALL">All</button>
+            <button class="filter-btn" data-filter="COVERED">Ready</button>
+            <button class="filter-btn" data-filter="MOVE">Move date</button>
+            <button class="filter-btn" data-filter="SUPPLY">Supply action</button>
+          </div>
+        </div>
+        <div class="card table-card"><div class="tablewrap"><table class="tbl" id="materialTable"></table></div></div>
+      </div>
+
+      <div class="section" id="exceptionsSection">
+        <div class="section-head"><div><h3>Under / Short Materials</h3><p>Decision-first exceptions only — the rows that require attention.</p></div></div>
+        <div class="card table-card"><div class="tablewrap"><table class="tbl" id="underTable"></table></div></div>
+      </div>
+
+      <div class="card how">
+        <div class="panel-title">How the Decision Engine Works</div>
+        <div class="panel-sub">The operating logic, simplified for a public manufacturing demo.</div>
+        <div class="how-steps">
+          <div class="how-step"><span class="n">Step 1</span><b>Read the production plan</b><span>Only non-zero production creates material demand.</span></div>
+          <div class="how-step"><span class="n">Step 2</span><b>Translate cases to components</b><span>Each run is multiplied by synthetic quantity-per-case BOM usage.</span></div>
+          <div class="how-step"><span class="n">Step 3</span><b>Choose the inventory basis</b><span>Validated physical can inventory can replace system inventory for that component.</span></div>
+          <div class="how-step"><span class="n">Step 4</span><b>Add dated inbound supply</b><span>A purchase order dated on the production day is treated as available before the run.</span></div>
+          <div class="how-step"><span class="n">Step 5</span><b>Allocate shared material</b><span>Same-day demand is allocated from the largest requirement to the smallest.</span></div>
+          <div class="how-step"><span class="n">Step 6</span><b>Find the earliest safe date</b><span>If the planned date is short, later in-week purchase orders are evaluated.</span></div>
+          <div class="how-step"><span class="n">Step 7</span><b>Escalate genuine supply gaps</b><span>If known supply cannot cover the run, the tool flags a future/new-supply action.</span></div>
+          <div class="how-step"><span class="n">Step 8</span><b>Protect the decision</b><span>Editing Page 1 marks material analysis stale until it is rerun.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">Portfolio demonstration using deterministic synthetic manufacturing data. No employer, customer, supplier, product, material, purchase-order, sales-order, or operational source data is included.</div>
+  </main>
+</div>
+<script>
+const CONFIG={
+  appTitle:'Production Quantity & Material Readiness Planner',
+  orgName:'Manufacturer',
+  erpLabel:'ERP',
+  categories:['Case','Can','Cap','Valve','Sleeve','Batching'],
+  policy:{futureRunHour:8,sameDayPOAvailable:true,sharedMaterialPriority:'MAX_REQUIREMENT_TO_MINIMUM',nonBlockingClasses:['UTILITY']}
+};
+const DEMO_DATA={"weeks":["2026-09-07","2026-09-14","2026-09-21","2026-09-28","2026-10-05"],"items":[{"sku":"SKU-0001","description":"Classic Topping 12-Pack","palletCases":120,"forecast":5400,"fgOH":900,"openOrders":1200,"plan":[2400,2100,0,0,0]},{"sku":"SKU-0002","description":"Extra Creamy Topping 12-Pack","palletCases":120,"forecast":5100,"fgOH":1200,"openOrders":600,"plan":[1800,0,2100,0,0]},{"sku":"SKU-0003","description":"Seasonal Spice Topping 12-Pack","palletCases":120,"forecast":3300,"fgOH":400,"openOrders":900,"plan":[900,0,0,2000,0]},{"sku":"SKU-0004","description":"Vanilla Foam 12-Pack","palletCases":120,"forecast":4200,"fgOH":700,"openOrders":1000,"plan":[1200,0,1800,0,0]},{"sku":"SKU-0005","description":"Zero Sugar Topping 12-Pack","palletCases":120,"forecast":2600,"fgOH":500,"openOrders":300,"plan":[0,1500,0,600,0]},{"sku":"SKU-0006","description":"Marshmallow Topping 12-Pack","palletCases":120,"forecast":3600,"fgOH":550,"openOrders":1100,"plan":[0,0,2400,0,0]},{"sku":"SKU-0007","description":"Coconut Topping 12-Pack","palletCases":144,"forecast":2200,"fgOH":800,"openOrders":0,"plan":[0,864,0,0,0]}],"bom":{"SKU-0001":[{"category":"Case","material":"MAT-C001","perCase":1},{"category":"Can","material":"MAT-N001","perCase":12},{"category":"Cap","material":"MAT-P001","perCase":12},{"category":"Valve","material":"MAT-V001","perCase":12},{"category":"Sleeve","material":"MAT-S001","perCase":12},{"category":"Batching","material":"MAT-B001","perCase":1.45},{"category":"Batching","material":"MAT-B002","perCase":0.72},{"category":"Batching","material":"MAT-U001","perCase":0.4}],"SKU-0002":[{"category":"Case","material":"MAT-C001","perCase":1},{"category":"Can","material":"MAT-N002","perCase":12},{"category":"Cap","material":"MAT-P002","perCase":12},{"category":"Valve","material":"MAT-V001","perCase":12},{"category":"Sleeve","material":"MAT-S001","perCase":12},{"category":"Batching","material":"MAT-B001","perCase":1.62},{"category":"Batching","material":"MAT-B002","perCase":0.68},{"category":"Batching","material":"MAT-B004","perCase":0.03},{"category":"Batching","material":"MAT-U001","perCase":0.38}],"SKU-0003":[{"category":"Case","material":"MAT-C002","perCase":1},{"category":"Can","material":"MAT-N003","perCase":12},{"category":"Cap","material":"MAT-P003","perCase":12},{"category":"Valve","material":"MAT-V001","perCase":12},{"category":"Sleeve","material":"MAT-S002","perCase":12},{"category":"Batching","material":"MAT-B001","perCase":1.3},{"category":"Batching","material":"MAT-B002","perCase":0.8},{"category":"Batching","material":"MAT-B005","perCase":0.06},{"category":"Batching","material":"MAT-U001","perCase":0.42}],"SKU-0004":[{"category":"Case","material":"MAT-C002","perCase":1},{"category":"Can","material":"MAT-N004","perCase":12},{"category":"Cap","material":"MAT-P004","perCase":12},{"category":"Valve","material":"MAT-V001","perCase":12},{"category":"Sleeve","material":"MAT-S002","perCase":12},{"category":"Batching","material":"MAT-B001","perCase":0.92},{"category":"Batching","material":"MAT-B002","perCase":1.05},{"category":"Batching","material":"MAT-B006","perCase":0.04},{"category":"Batching","material":"MAT-U001","perCase":0.45}],"SKU-0005":[{"category":"Case","material":"MAT-C001","perCase":1},{"category":"Can","material":"MAT-N005","perCase":12},{"category":"Cap","material":"MAT-P005","perCase":12},{"category":"Valve","material":"MAT-V001","perCase":12},{"category":"Sleeve","material":"MAT-S001","perCase":12},{"category":"Batching","material":"MAT-B001","perCase":1.35},{"category":"Batching","material":"MAT-B007","perCase":0.05},{"category":"Batching","material":"MAT-U001","perCase":0.35}],"SKU-0006":[{"category":"Case","material":"MAT-C001","perCase":1},{"category":"Can","material":"MAT-N006","perCase":12},{"category":"Cap","material":"MAT-P001","perCase":12},{"category":"Valve","material":"MAT-V001","perCase":12},{"category":"Sleeve","material":"MAT-S001","perCase":12},{"category":"Batching","material":"MAT-B001","perCase":1.55},{"category":"Batching","material":"MAT-B002","perCase":0.7},{"category":"Batching","material":"MAT-B003","perCase":0.055},{"category":"Batching","material":"MAT-U001","perCase":0.36}],"SKU-0007":[{"category":"Case","material":"MAT-C003","perCase":1},{"category":"Can","material":"MAT-N007","perCase":12},{"category":"Cap","material":"MAT-P006","perCase":12},{"category":"Valve","material":"MAT-V001","perCase":12},{"category":"Sleeve","material":"MAT-S003","perCase":12},{"category":"Batching","material":"MAT-B008","perCase":1.8},{"category":"Batching","material":"MAT-B002","perCase":0.6},{"category":"Batching","material":"MAT-U001","perCase":0.3}]},"materials":{"MAT-C001":{"material":"MAT-C001","description":"Standard Shipping Case","category":"Case","oh":16000,"uom":"EA","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-C002":{"material":"MAT-C002","description":"Foam Shipping Case","category":"Case","oh":6000,"uom":"EA","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-C003":{"material":"MAT-C003","description":"Small-Format Shipping Case","category":"Case","oh":1300,"uom":"EA","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-N001":{"material":"MAT-N001","description":"Can Type 1","category":"Can","oh":41000,"uom":"EA","physicalQty":44500,"physicalValid":true,"nonBlocking":false},"MAT-N002":{"material":"MAT-N002","description":"Can Type 2","category":"Can","oh":22500,"uom":"EA","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-N003":{"material":"MAT-N003","description":"Can Type 3","category":"Can","oh":12000,"uom":"EA","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-N004":{"material":"MAT-N004","description":"Can Type 4","category":"Can","oh":9000,"uom":"EA","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-N005":{"material":"MAT-N005","description":"Can Type 5","category":"Can","oh":20000,"uom":"EA","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-N006":{"material":"MAT-N006","description":"Can Type 6","category":"Can","oh":22500,"uom":"EA","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-N007":{"material":"MAT-N007","description":"Can Type 7","category":"Can","oh":15000,"uom":"EA","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-P001":{"material":"MAT-P001","description":"Cap Type 1","category":"Cap","oh":57000,"uom":"EA","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-P002":{"material":"MAT-P002","description":"Cap Type 2","category":"Cap","oh":17000,"uom":"EA","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-P003":{"material":"MAT-P003","description":"Cap Type 3","category":"Cap","oh":18000,"uom":"EA","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-P004":{"material":"MAT-P004","description":"Cap Type 4","category":"Cap","oh":17000,"uom":"EA","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-P005":{"material":"MAT-P005","description":"Cap Type 5","category":"Cap","oh":22000,"uom":"EA","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-P006":{"material":"MAT-P006","description":"Cap Type 6","category":"Cap","oh":13000,"uom":"EA","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-V001":{"material":"MAT-V001","description":"Universal Valve","category":"Valve","oh":180000,"uom":"EA","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-S001":{"material":"MAT-S001","description":"Standard Sleeve","category":"Sleeve","oh":62000,"uom":"EA","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-S002":{"material":"MAT-S002","description":"Foam Sleeve","category":"Sleeve","oh":25000,"uom":"EA","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-S003":{"material":"MAT-S003","description":"Small-Format Sleeve","category":"Sleeve","oh":13000,"uom":"EA","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-B001":{"material":"MAT-B001","description":"Base Ingredient","category":"Batching","oh":18000,"uom":"LB","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-B002":{"material":"MAT-B002","description":"Sweetener","category":"Batching","oh":15000,"uom":"LB","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-B003":{"material":"MAT-B003","description":"Marshmallow Flavor","category":"Batching","oh":75,"uom":"LB","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-B004":{"material":"MAT-B004","description":"Stabilizer","category":"Batching","oh":250,"uom":"LB","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-B005":{"material":"MAT-B005","description":"Seasonal Spice Flavor","category":"Batching","oh":85,"uom":"LB","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-B006":{"material":"MAT-B006","description":"Vanilla Flavor","category":"Batching","oh":80,"uom":"LB","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-B007":{"material":"MAT-B007","description":"Zero Sugar Stabilizer","category":"Batching","oh":160,"uom":"LB","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-B008":{"material":"MAT-B008","description":"Coconut Base","category":"Batching","oh":2500,"uom":"LB","physicalQty":null,"physicalValid":false,"nonBlocking":false},"MAT-U001":{"material":"MAT-U001","description":"Process Water","category":"Batching","oh":-12000,"uom":"GAL","physicalQty":null,"physicalValid":false,"nonBlocking":true}},"pos":[{"material":"MAT-N004","date":"2026-09-09","qty":18000,"po":"PO-DEMO-1001"},{"material":"MAT-P002","date":"2026-09-11","qty":30000,"po":"PO-DEMO-1002"},{"material":"MAT-N003","date":"2026-09-21","qty":12000,"po":"PO-DEMO-1003"},{"material":"MAT-B005","date":"2026-09-28","qty":100,"po":"PO-DEMO-1004"},{"material":"MAT-B008","date":"2026-09-14","qty":1800,"po":"PO-DEMO-1005"}]};
+let state={loaded:false,dirty:false,data:null,lastAnalysis:null,runFilter:'ALL'};
+const $=id=>document.getElementById(id);
+const clone=o=>JSON.parse(JSON.stringify(o));
+const fmt=n=>Number(n||0).toLocaleString('en-US',{maximumFractionDigits:0});
+const fmt1=n=>Number(n||0).toLocaleString('en-US',{maximumFractionDigits:1});
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function dateObj(s){return new Date(s+'T12:00:00')}
+function shortDate(s){return dateObj(s).toLocaleDateString('en-US',{month:'short',day:'numeric'})}
+function dayName(s){return dateObj(s).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}
+function addDays(s,n){const d=dateObj(s);d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)}
+function pct(v,max=100){return Math.max(0,Math.min(max,Number(v||0)))}
+function setPage(p){
+  const plan=p==='plan';
+  $('pagePlan').hidden=!plan;$('pageMat').hidden=plan;
+  $('navPlan').classList.toggle('active',plan);$('navMat').classList.toggle('active',!plan);
+}
+function loadDemo(){
+  state.loaded=true;state.dirty=false;state.data=clone(DEMO_DATA);state.lastAnalysis=null;state.runFilter='ALL';
+  $('planStatus').textContent='DEMO PLAN LOADED';$('planStatus').className='statusline clean';
+  renderPlan();renderMaterialEmpty();renderPOtimeline();
+}
+function resetDemo(){
+  state={loaded:false,dirty:false,data:null,lastAnalysis:null,runFilter:'ALL'};
+  renderPlan();renderMaterialEmpty();
+  $('planStatus').textContent='Load demo data to begin.';$('planStatus').className='statusline clean';
+  $('poTimeline').innerHTML='<div class="skeleton">Load demo data to view inbound supply.</div>';
+}
+function renderPlan(){
+  const t=$('planTable');
+  if(!state.loaded){
+    t.innerHTML='<thead><tr><th>Product ID</th><th>Description</th><th>Forecast</th><th>FG On Hand</th><th>Open Orders</th></tr></thead><tbody><tr><td colspan="5" class="muted">Load Demo Data to populate the planner.</td></tr></tbody>';
+    ['kItems','kPlan','kFG','kGap'].forEach(id=>$(id).textContent='0');$('kCoverage').textContent='0%';
+    ['barItems','barPlan','barCoverage','barFG','barGap'].forEach(id=>$(id).style.width='0%');
+    $('weeklyChart').innerHTML='<div class="skeleton">Load demo data to view production cadence.</div>';
+    $('coverageList').innerHTML='<div class="skeleton">No coverage view yet.</div>';
+    return;
+  }
+  const x=state.data;
+  let h='<thead><tr><th>Product ID</th><th>Description</th><th>Pallet Cases</th><th>Forecast</th><th>FG On Hand</th><th>Open Orders</th>';
+  x.weeks.forEach(w=>h+=`<th>${shortDate(w)}</th>`);
+  h+='<th>Total Planned</th><th>Remaining Gap</th></tr></thead><tbody>';
+  let tp=0,tf=0,tfg=0;
+  x.items.forEach((it,ri)=>{
+    const total=it.plan.reduce((a,b)=>a+Number(b||0),0),gap=Math.max(0,it.forecast-it.fgOH-total);
+    tp+=total;tf+=it.forecast;tfg+=it.fgOH;
+    h+=`<tr><td>${esc(it.sku)}</td><td>${esc(it.description)}</td><td class="num">${fmt(it.palletCases)}</td><td class="num">${fmt(it.forecast)}</td><td class="num">${fmt(it.fgOH)}</td><td class="num">${fmt(it.openOrders)}</td>`;
+    it.plan.forEach((q,wi)=>h+=`<td><input class="editable" type="number" min="0" step="1" data-ri="${ri}" data-wi="${wi}" value="${Number(q||0)}" aria-label="${esc(it.sku)} planned cases for ${shortDate(x.weeks[wi])}"></td>`);
+    h+=`<td class="num"><b>${fmt(total)}</b></td><td class="num ${gap?'warntext':'good'}">${fmt(gap)}</td></tr>`;
+  });
+  h+='</tbody>';t.innerHTML=h;installHeaderUX(t);
+  const cov=tf?Math.min(999,((tfg+tp)/tf)*100):0, gap=Math.max(0,tf-tfg-tp);
+  $('kItems').textContent=x.items.length;$('kPlan').textContent=fmt(tp);$('kFG').textContent=fmt(tfg);$('kGap').textContent=fmt(gap);$('kCoverage').textContent=fmt1(cov)+'%';
+  $('barItems').style.width='100%';$('barPlan').style.width=Math.min(100,tp/Math.max(tf,1)*100)+'%';$('barCoverage').style.width=Math.min(100,cov)+'%';$('barFG').style.width=Math.min(100,tfg/Math.max(tf,1)*100)+'%';$('barGap').style.width=Math.min(100,gap/Math.max(tf,1)*100)+'%';
+  renderWeeklyChart();renderCoverageList();
+}
+function renderWeeklyChart(){
+  if(!state.loaded)return;
+  const x=state.data, totals=x.weeks.map((_,wi)=>x.items.reduce((s,it)=>s+Number(it.plan[wi]||0),0)),mx=Math.max(...totals,1);
+  let h='<div class="week-bars">';
+  totals.forEach((v,i)=>{const height=Math.max(5,v/mx*100);h+=`<div class="week-col"><div class="week-value">${fmt(v)}</div><div class="bar-shell"><div class="bar" title="${fmt(v)} planned cases" style="height:${height}%"></div></div><div class="week-label">${shortDate(x.weeks[i])}</div></div>`});
+  h+='</div><div class="legend-row"><span><i class="legend-dot"></i>Planned cases by week</span><span>Higher bars indicate greater same-week material pressure.</span></div>';
+  $('weeklyChart').innerHTML=h;
+}
+function renderCoverageList(){
+  if(!state.loaded)return;
+  const rows=state.data.items.map(it=>{
+    const planned=it.plan.reduce((a,b)=>a+Number(b||0),0),coverage=(it.fgOH+planned)/Math.max(it.forecast,1)*100;
+    return {...it,planned,coverage};
+  }).sort((a,b)=>a.coverage-b.coverage);
+  $('coverageList').innerHTML=rows.map(r=>`<div class="coverage-row ${r.coverage<90?'risk':''}"><div class="coverage-top"><span class="coverage-name" title="${esc(r.description)}">${esc(r.sku)} · ${esc(r.description)}</span><span class="coverage-pct">${fmt1(r.coverage)}%</span></div><div class="progress"><i style="width:${Math.min(100,r.coverage)}%"></i></div></div>`).join('');
+}
+function materialBasis(m){if(m.category==='Can'&&m.physicalValid&&m.physicalQty!=null)return {qty:Number(m.physicalQty),basis:'Physical'};return {qty:Math.max(0,Number(m.oh||0)),basis:'System'}}
+function buildRuns(){const x=state.data,r=[];x.items.forEach(it=>it.plan.forEach((q,wi)=>{q=Number(q||0);if(q>0)r.push({sku:it.sku,description:it.description,week:x.weeks[wi],date:x.weeks[wi],cases:q,wi})}));return r.sort((a,b)=>a.date.localeCompare(b.date)||b.cases-a.cases||a.sku.localeCompare(b.sku))}
+function poTo(mid,date){return state.data.pos.filter(p=>p.material===mid&&p.date<=date).reduce((a,p)=>a+Number(p.qty||0),0)}
+function nextPO(mid,after){return state.data.pos.filter(p=>p.material===mid&&p.date>after).sort((a,b)=>a.date.localeCompare(b.date))[0]||null}
+function analyze(){if(!state.loaded)return null;const x=state.data,runs=buildRuns(),records=[],consumed={};const byDate={};runs.forEach(r=>(byDate[r.date]??=[]).push(r));for(const date of Object.keys(byDate).sort()){const dateRuns=byDate[date],reqs={};for(const r of dateRuns){for(const b of x.bom[r.sku]||[]){const m=x.materials[b.material];if(!m)continue;const req=r.cases*Number(b.perCase||0);(reqs[b.material]??=[]).push({run:r,b,m,req})}}for(const [mid,list] of Object.entries(reqs)){list.sort((a,b)=>b.req-a.req||a.run.sku.localeCompare(b.run.sku));const m=list[0].m,basis=materialBasis(m);let available=basis.qty+poTo(mid,date)-Number(consumed[mid]||0);for(const z of list){const alloc=Math.max(0,Math.min(available,z.req)),short=Math.max(0,z.req-alloc),nonBlocking=!!m.nonBlocking;records.push({sku:z.run.sku,description:z.run.description,week:z.run.week,date,category:z.b.category,material:mid,materialDescription:m.description,uom:m.uom,perCase:Number(z.b.perCase||0),required:z.req,availableBefore:available,allocated:alloc,short,basis:basis.basis,nonBlocking});available-=alloc;consumed[mid]=(consumed[mid]||0)+alloc}}}
+const resultRuns=runs.map(r=>{const rr=records.filter(z=>z.sku===r.sku&&z.date===r.date),blocking=rr.filter(z=>!z.nonBlocking),short=blocking.filter(z=>z.short>1e-9);const cats={};CONFIG.categories.forEach(c=>{const z=blocking.filter(q=>q.category===c);cats[c]=z.some(q=>q.short>1e-9)?'SHORT':'COVERED'});let canRun=r.cases;for(const z of blocking){if(z.short>1e-9&&z.perCase>0)canRun=Math.min(canRun,Math.floor(z.allocated/z.perCase))}let overall='COVERED',recommended=r.date,action='Covered on planned date.';if(short.length){const cand=new Set();short.forEach(z=>x.pos.filter(p=>p.material===z.material&&p.date>r.date&&p.date<=addDays(r.week,6)).forEach(p=>cand.add(p.date)));let found='';for(const cd of [...cand].sort()){let ok=true;for(const z of short){const m=x.materials[z.material],basis=materialBasis(m);const prior=records.filter(q=>q.material===z.material&&q.date<cd&&!(q.sku===r.sku&&q.date===r.date)).reduce((a,q)=>a+q.allocated,0);const avail=basis.qty+poTo(z.material,cd)-prior;if(avail+1e-9<z.required){ok=false;break}}if(ok){found=cd;break}}if(found){overall='MOVE';recommended=found;action=`Move to ${dayName(found)} — covered after dated supply.`}else{const future=short.map(z=>nextPO(z.material,r.date)).filter(Boolean);if(future.length===short.length){const latest=future.map(p=>p.date).sort().slice(-1)[0];overall='FUTURE_PO';recommended=latest;action=`Not covered this week — future PO on ${dayName(latest)}.`}else{overall='NEW_PO';recommended='';action='Not covered — new future PO required.'}}}
+return {...r,records:rr,cats,short,canRun,overall,recommended,action}});return {runs:resultRuns,records,under:records.filter(z=>!z.nonBlocking&&z.short>1e-9)}}
+function statusText(s){return s==='COVERED'?'COVERED':s==='MOVE'?'MOVE DATE':s==='FUTURE_PO'?'FUTURE PO':s==='NEW_PO'?'NEW PO REQUIRED':s}
+function renderMaterialEmpty(){
+  ['mRuns','mCovered','mMove','mPO'].forEach(id=>$(id).textContent='0');$('mReadiness').textContent='0%';
+  ['barRuns','barCovered','barMove','barPO','barReadiness'].forEach(id=>$(id).style.width='0%');
+  $('materialTable').innerHTML='<thead><tr><th>Run Readiness</th></tr></thead><tbody><tr><td class="muted">Run the material check after loading a plan.</td></tr></tbody>';
+  $('underTable').innerHTML='<thead><tr><th>Exceptions</th></tr></thead><tbody><tr><td class="muted">No analysis yet.</td></tr></tbody>';
+  $('actionQueue').innerHTML='<div class="skeleton">Run the material check to populate the action queue.</div>';
+  $('riskBars').innerHTML='<div class="skeleton">No risk distribution yet.</div>';
+  $('readinessDonut').style.background='conic-gradient(#dce4e9 0 100%)';$('donutPct').textContent='0%';$('legReady').textContent='0';$('legMove').textContent='0';$('legSupply').textContent='0';
+  $('matStatus').textContent='No material check has been run.';$('matStatus').className='statusline dirty';
+}
+function renderAnalysis(a){
+  state.lastAnalysis=a;state.dirty=false;
+  $('matStatus').textContent='MATERIAL CHECK CURRENT';$('matStatus').className='statusline clean';
+  const ready=a.runs.filter(r=>r.overall==='COVERED').length;
+  const move=a.runs.filter(r=>r.overall==='MOVE').length;
+  const supply=a.runs.filter(r=>r.overall==='NEW_PO'||r.overall==='FUTURE_PO').length;
+  const rate=a.runs.length?ready/a.runs.length*100:0;
+  $('mRuns').textContent=a.runs.length;$('mCovered').textContent=ready;$('mMove').textContent=move;$('mPO').textContent=supply;$('mReadiness').textContent=fmt1(rate)+'%';
+  $('barRuns').style.width='100%';$('barCovered').style.width=(a.runs.length?ready/a.runs.length*100:0)+'%';$('barMove').style.width=(a.runs.length?move/a.runs.length*100:0)+'%';$('barPO').style.width=(a.runs.length?supply/a.runs.length*100:0)+'%';$('barReadiness').style.width=rate+'%';
+  renderReadinessDonut(ready,move,supply,a.runs.length);renderActionQueue(a);renderRiskBars(a);renderRunTable(a);renderUnderTable(a);
+}
+function renderReadinessDonut(ready,move,supply,total){
+  const p1=total?ready/total*100:0,p2=total?move/total*100:0;
+  $('readinessDonut').style.background=`conic-gradient(var(--good) 0 ${p1}%,var(--warn) ${p1}% ${p1+p2}%,var(--bad) ${p1+p2}% 100%)`;
+  $('donutPct').textContent=fmt1(p1)+'%';$('legReady').textContent=ready;$('legMove').textContent=move;$('legSupply').textContent=supply;
+}
+function renderActionQueue(a){
+  const rows=a.under.slice().sort((x,y)=>y.short-x.short).slice(0,5);
+  if(!rows.length){$('actionQueue').innerHTML='<div class="action-card"><span class="action-rank" style="background:var(--good-bg);color:var(--good)">✓</span><div class="action-main"><b>No blocking shortages</b><span>Every planned run is covered on its current date.</span></div><div class="action-qty"><b style="color:var(--good)">Ready</b><span>plan</span></div></div>';return}
+  $('actionQueue').innerHTML=rows.map((z,i)=>{const r=a.runs.find(q=>q.sku===z.sku&&q.date===z.date);return `<div class="action-card"><span class="action-rank">${i+1}</span><div class="action-main"><b>${esc(z.sku)} · ${esc(z.category)} · ${esc(z.material)}</b><span>${r?esc(r.action):'Supply action required.'}</span></div><div class="action-qty"><b>${fmt(z.short)}</b><span>${esc(z.uom)} short</span></div></div>`}).join('');
+}
+function renderRiskBars(a){
+  const counts={};CONFIG.categories.forEach(c=>counts[c]=0);a.under.forEach(z=>counts[z.category]=(counts[z.category]||0)+1);
+  const mx=Math.max(...Object.values(counts),1);
+  $('riskBars').innerHTML=CONFIG.categories.map(c=>`<div class="risk-row"><label>${esc(c)}</label><div class="risk-track"><i style="width:${counts[c]/mx*100}%"></i></div><b>${counts[c]}</b></div>`).join('');
+}
+function renderPOtimeline(){
+  if(!state.loaded)return;
+  const rows=state.data.pos.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  $('poTimeline').innerHTML=rows.map(p=>{const m=state.data.materials[p.material]||{};return `<div class="timeline-item"><b>${dayName(p.date)} · ${esc(p.material)}</b><span>${fmt(p.qty)} ${esc(m.uom||'')} inbound · ${esc(m.description||'Synthetic material')}</span></div>`}).join('');
+}
+function runMatches(r){
+  if(state.runFilter==='ALL')return true;
+  if(state.runFilter==='SUPPLY')return r.overall==='NEW_PO'||r.overall==='FUTURE_PO';
+  return r.overall===state.runFilter;
+}
+function badgeForOverall(s){
+  if(s==='COVERED')return '<span class="badge good">Ready</span>';
+  if(s==='MOVE')return '<span class="badge warn">Move date</span>';
+  return '<span class="badge bad">Supply action</span>';
+}
+function categoryBadge(st){
+  return st==='COVERED'?'<span class="badge good">Covered</span>':'<span class="badge bad">Short</span>';
+}
+function renderRunTable(a){
+  const rows=a.runs.filter(runMatches);
+  let h='<thead><tr><th>Week</th><th>Product ID</th><th>Cases</th><th>Planned Run</th><th>Recommended Run</th><th>Case</th><th>Can</th><th>Cap</th><th>Valve</th><th>Sleeve</th><th>Batching</th><th>Can Run Cases</th><th>Overall</th><th>Action</th></tr></thead><tbody>';
+  rows.forEach(r=>{
+    h+=`<tr><td>${shortDate(r.week)}</td><td>${esc(r.sku)}</td><td class="num">${fmt(r.cases)}</td><td>${dayName(r.date)}</td><td>${r.recommended?dayName(r.recommended):'—'}</td>`;
+    CONFIG.categories.forEach(c=>h+=`<td>${categoryBadge(r.cats[c]||'COVERED')}</td>`);
+    h+=`<td class="num">${fmt(r.canRun)}</td><td>${badgeForOverall(r.overall)}</td><td>${esc(r.action)}</td></tr>`;
+  });
+  if(!rows.length)h+='<tr><td colspan="14" class="muted">No runs match the selected filter.</td></tr>';
+  h+='</tbody>';$('materialTable').innerHTML=h;installHeaderUX($('materialTable'));
+}
+function renderUnderTable(a){
+  let u='<thead><tr><th>Week</th><th>Product ID</th><th>Category</th><th>Material</th><th>Description</th><th>Basis</th><th>Required</th><th>Allocated</th><th>Short</th><th>Next PO</th></tr></thead><tbody>';
+  a.under.slice().sort((x,y)=>x.date.localeCompare(y.date)||y.short-x.short).forEach(z=>{
+    const np=nextPO(z.material,z.date);
+    u+=`<tr><td>${shortDate(z.week)}</td><td>${esc(z.sku)}</td><td><span class="badge bad">${esc(z.category)}</span></td><td>${esc(z.material)}</td><td>${esc(z.materialDescription)}</td><td><span class="badge info">${esc(z.basis)}</span></td><td class="num">${fmt(z.required)} ${esc(z.uom)}</td><td class="num">${fmt(z.allocated)} ${esc(z.uom)}</td><td class="num bad">${fmt(z.short)} ${esc(z.uom)}</td><td>${np?dayName(np.date)+' · '+fmt(np.qty):'<span class="bad">None</span>'}</td></tr>`;
+  });
+  if(!a.under.length)u+='<tr><td colspan="10" class="good">No blocking shortages.</td></tr>';
+  u+='</tbody>';$('underTable').innerHTML=u;installHeaderUX($('underTable'));
+}
+function planChanged(){
+  if(!state.loaded)return;
+  state.dirty=true;state.lastAnalysis=null;
+  $('matStatus').textContent='PLAN CHANGED — RE-RUN MATERIAL CHECK';$('matStatus').className='statusline dirty';
+  $('planStatus').textContent='Plan changed. Material analysis is stale.';$('planStatus').className='statusline dirty';
+  renderPlan();renderMaterialEmpty();
+}
+function installHeaderUX(table){
+  table.querySelectorAll('th').forEach((th,i)=>{
+    th.onclick=()=>{th.classList.toggle('col-selected');table.querySelectorAll('tr').forEach(tr=>{const c=tr.children[i];if(c)c.classList.toggle('col-selected',th.classList.contains('col-selected'))})}
+  });
+}
+function exportCSV(){
+  if(!state.lastAnalysis){alert('Run the material check first.');return}
+  const rows=[['Week','SKU','Cases','Planned Run','Recommended Run','Overall','Can Run Cases','Action'],...state.lastAnalysis.runs.map(r=>[r.week,r.sku,r.cases,r.date,r.recommended||'',statusText(r.overall),r.canRun,r.action])];
+  const txt=rows.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/csv'}));a.download='synthetic_material_readiness_decisions.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+document.addEventListener('input',e=>{
+  if(e.target.matches('.editable')){
+    const ri=Number(e.target.dataset.ri),wi=Number(e.target.dataset.wi),q=Math.max(0,Number(e.target.value||0));
+    state.data.items[ri].plan[wi]=q;planChanged();
+  }
+});
+$('loadDemo').onclick=()=>{loadDemo();setPage('plan')};
+$('resetPlan').onclick=resetDemo;
+$('navPlan').onclick=()=>setPage('plan');
+$('navMat').onclick=()=>setPage('mat');
+$('jumpDecision').onclick=()=>{if(!state.loaded)loadDemo();setPage('mat');renderAnalysis(analyze());window.scrollTo({top:document.querySelector('.hero').offsetHeight+40,behavior:'smooth'})};
+$('runMaterial').onclick=()=>{if(!state.loaded)loadDemo();renderAnalysis(analyze())};
+$('exportDecision').onclick=exportCSV;
+document.querySelectorAll('#runFilters .filter-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('#runFilters .filter-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.runFilter=b.dataset.filter;if(state.lastAnalysis)renderRunTable(state.lastAnalysis)});
+$('appTitle').textContent=CONFIG.appTitle;
+renderPlan();renderMaterialEmpty();
+
+function autoDemoFromHash(){
+  if(location.hash==='#demo-plan'){loadDemo();setPage('plan')}
+  if(location.hash==='#demo-material'){loadDemo();setPage('mat');renderAnalysis(analyze())}
+  if(location.hash==='#demo-short'){loadDemo();setPage('mat');renderAnalysis(analyze());setTimeout(()=>$('exceptionsSection').scrollIntoView({block:'start'}),50)}
+}
+autoDemoFromHash();
+</script>
+</body>
+</html>
