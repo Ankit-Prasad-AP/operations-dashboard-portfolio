@@ -24,6 +24,8 @@ Every planning question at the plant touched the same half-dozen ERP exports: th
 | 8 | [Daily production report](./index.html#daily-production-report) | Loads the daily production reports and the weekly schedules; shows produced vs scheduled by day, line and item, holds and plant summary. |
 | 9 | [Weekly email](./index.html#weekly-email) | Builds the weekly schedule email from this week's schedule workbook, with callouts, and lets you edit the sheet in place and download it. |
 | 10 | [Days of supply](./index.html#days-of-supply) | Days of supply per item and per material, on hand and on hand + purchase orders, with the tightest material for each item. |
+| 11 | [Forecast](./index.html#forecast) | This year, next year or both, in cases or equivalent: normal vs LTO vs contract-customer forecast by period, the LTO breakdown, top items, and a customer / item review that flags forecast moves above a set size. |
+| 12 | [Contract customers](./index.html#contract-customers) | Each contract customer's own weekly plan exactly as their file gives it, one row per item, scrollable by week. Click a week to highlight it across customers with totals; double-click an item to open it on page 1. |
 
 ## Where it's used
 

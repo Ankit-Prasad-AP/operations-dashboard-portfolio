@@ -1,6 +1,6 @@
 LEAK SCAN
 folder: site
-files scanned: 72
+files scanned: 79
 checks: real item codes (534), real material codes (1692), real names (330), brand/person/system words (234), real file names (96), contact/company strings
 
 skipped (third-party library, unmodified, or the owner resume): Ankit_Prasad_Resume.pdf (owner's own resume), item-intelligence/xlsx.full.min.js, 13-week-plan/xlsx.bundle.js
