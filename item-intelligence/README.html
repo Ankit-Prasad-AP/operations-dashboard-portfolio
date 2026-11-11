@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Item Intelligence · how it works</title><style>
+:root{--bg:#fff;--ink:#1c2228;--muted:#5f6b76;--line:#e3e6e9;--accent:#1f4e55;--accent-soft:#e8f0f0;--tile:#f6f7f8}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1040px;margin:0 auto;padding-block:28px 56px}
+h1,h2,h3{line-height:1.2;text-wrap:balance;margin:0}
+h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.01em}
+h2{font-size:clamp(20px,2.6vw,26px);font-weight:700;margin-top:48px;padding-top:28px;border-top:1px solid var(--line)}
+h3{font-size:18px;font-weight:650}
+p{margin:10px 0;max-width:70ch}a{color:var(--accent);text-decoration:none;border-bottom:1px solid #b9cccd}a:hover{border-color:var(--accent)}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.top{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:baseline}
+.links{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;margin-top:14px}.links a{border:1px solid var(--line);border-radius:999px;padding:5px 12px;color:var(--ink)}.links a:hover{border-color:var(--accent);color:var(--accent)}
+.lede{font-size:clamp(17px,2vw,20px);color:var(--muted);max-width:62ch;margin-top:10px}
+.cards{display:grid;gap:22px;margin-top:22px}
+.card{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--bg)}
+.card img{display:block;width:100%;height:auto;border-bottom:1px solid var(--line);background:var(--tile)}
+.card .body{padding:20px 22px 22px}
+.card .body>p.problem{color:var(--muted)}
+.planner{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:8px}.planner li{padding-left:18px;position:relative}.planner li::before{content:"";position:absolute;left:0;top:.6em;width:8px;height:8px;border-radius:2px;background:var(--accent)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.btn{display:inline-block;border-radius:9px;padding:9px 16px;font-weight:600;font-size:15px;border:1px solid var(--accent)}
+.btn.primary{background:var(--accent);color:#fff}.btn.ghost{color:var(--accent);background:var(--bg)}
+.pages{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;font-size:13px}.pages a{background:var(--accent-soft);border:0;border-radius:6px;padding:4px 9px;color:var(--accent)}
+.how{display:grid;gap:10px;margin-top:14px;max-width:70ch}.how div{display:grid;grid-template-columns:28px 1fr;gap:10px}.how b{color:var(--accent);font-variant-numeric:tabular-nums}
+footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+.note{background:var(--tile);border-radius:10px;padding:12px 16px;font-size:14px;color:var(--muted);margin-top:14px}
+.readme table{border-collapse:collapse;width:100%;font-size:14px;margin:12px 0}.readme th,.readme td{border:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}.readme th{background:var(--tile)}
+.readme img{max-width:100%;border:1px solid var(--line);border-radius:10px;margin:8px 0}.readme pre{background:var(--tile);padding:12px 14px;border-radius:10px;overflow-x:auto;font-size:13px}.readme code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em}
+.readme h2{margin-top:40px}.readme ul,.readme ol{padding-left:22px}.readme li{margin:4px 0}.readme blockquote{margin:14px 0;padding:10px 16px;border-left:3px solid var(--accent);background:var(--tile);color:var(--muted)}
+.tbd{background:#fff4d6;border-radius:4px;padding:0 4px}
+@media (min-width:860px){.cards{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head>
+<body><div class="wrap readme">
+<nav class="links" style="margin:0 0 20px"><a href="../index.html">All tools</a><a href="./index.html">Open the demo</a></nav>
+<h1>Item Intelligence</h1>
+<p><strong>One item, every planning fact, one screen.</strong> Type an item code and the page shows its forecast, sold-to-date, on hand, open orders, bill of materials with material stock, lots and expiry, packaging transitions, where it sits on this week's and next week's schedule, and what was produced this week.</p>
+<p><img alt="Item Intelligence, page 1" src="screenshots/01-item-information.png" /></p>
+<p><a href="./index.html">Open the demo</a> · it loads the sample plant on open (about 10 seconds) and starts on item A2210.</p>
+<h2>The problem</h2>
+<p>Every planning question at the plant touched the same half-dozen ERP exports: the forecast, the sold-to-date report, product availability (open orders), on hand and purchase orders, the bill of materials, lots on hand, plus the week's production schedule. Answering "can we run A2210 next week, and should we?" meant opening all of them, filtering each to one item and reconciling the numbers by hand, for every item, every day. The same files also fed the daily production report and the weekly schedule email, which were rebuilt by hand too.</p>
+<h2>The pages</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Page</th>
+<th>What the planner gets</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><a href="./index.html#item-information">Item information</a></td>
+<td>Everything about one item: status, pack, formula family, forecast vs sold by period, open orders, on hand, materials with tightest-material flag, lots, account executives selling it.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><a href="./index.html#bom-viewer">BOM viewer</a></td>
+<td>The item's bill of materials as a tree, with on hand and open purchase orders for each component, and what else uses them.</td>
+</tr>
+<tr>
+<td>3</td>
+<td><a href="./index.html#relationship-web">Relationship web</a></td>
+<td>Where-used in both directions: item → materials, material → items, combo parents and children.</td>
+</tr>
+<tr>
+<td>4</td>
+<td><a href="./index.html#callout-sheet">Callout sheet</a></td>
+<td>For the next weeks: items with orders above forecast, items with no forecast, items whose tightest material runs out before the pickup date. Copyable as a list.</td>
+</tr>
+<tr>
+<td>5</td>
+<td><a href="./index.html#transitions">Transitions</a></td>
+<td>Packaging and code transitions: which lots and materials belong to the old code, when the new one starts, what to run out first.</td>
+</tr>
+<tr>
+<td>6</td>
+<td><a href="./index.html#accounts">Accounts</a></td>
+<td>Forecast vs sold by account executive and customer, so over- and under-forecast accounts are visible before the period closes.</td>
+</tr>
+<tr>
+<td>7</td>
+<td><a href="./index.html#rework">Rework</a></td>
+<td>Rework candidates and the rework plan, built from the same lot and order data.</td>
+</tr>
+<tr>
+<td>8</td>
+<td><a href="./index.html#daily-production-report">Daily production report</a></td>
+<td>Loads the daily production reports and the weekly schedules; shows produced vs scheduled by day, line and item, holds and plant summary.</td>
+</tr>
+<tr>
+<td>9</td>
+<td><a href="./index.html#weekly-email">Weekly email</a></td>
+<td>Builds the weekly schedule email from this week's schedule workbook, with callouts, and lets you edit the sheet in place and download it.</td>
+</tr>
+<tr>
+<td>10</td>
+<td><a href="./index.html#days-of-supply">Days of supply</a></td>
+<td>Days of supply per item and per material, on hand and on hand + purchase orders, with the tightest material for each item.</td>
+</tr>
+</tbody>
+</table>
+<h2>Where it's used</h2>
+<ul>
+<li>Used for weekly planning in a multi-site food plant: 4 production lines across 3 sites.</li>
+<li>One search replaces looking an item up across six separate ERP exports.</li>
+<li>Orders above forecast, items with no forecast and materials that run out before pickup are flagged on one callout sheet before the schedule is released.</li>
+<li>The daily production report and the weekly schedule email are built from the same files instead of being rebuilt by hand.</li>
+</ul>
+<h2>Inputs → logic → outputs</h2>
+<pre><code>ERP exports (xlsx)                      Logic (in the browser)                  Outputs
+──────────────────────────────          ─────────────────────────────────       ────────────────────────────
+Master code / weights &amp; measures   ─┐   join everything on item code            Item page (1), BOM tree (2),
+Forecast (normal + LTO)             │   period calendar (P1–P12, 4-5 weeks)     where-used web (3)
+Sold-to-date, Difference by item    │   forecast vs sold, over-forecast         Callout sheet (4) with copy
+Product availability (open orders)  ├─▶ open orders vs forecast per period  ─▶  Transitions view (5)
+On hand + PO, Equivalent on hand    │   tightest material = min over BOM        Accounts view (6)
+Bill of materials (two layouts)     │   of (on hand + PO due) ÷ need            Rework plan (7)
+Lots on hand, Packaging transition  │   lot expiry vs pickup, transition rules   Daily production report (8)
+Production schedules (this/next wk) │   schedule rows → runs per item/line      Weekly email + edited xlsx (9)
+Daily production reports           ─┘   produced vs scheduled per day            Days of supply tables (10)
+</code></pre>
+<p>Nothing leaves the browser. Each page reads the loaded workbooks with SheetJS and recomputes when a file is replaced.</p>
+<h2>My role</h2>
+<p>I planned production at the plant and I am the user of this tool. I decided which files it reads, what each page shows and in what order, wrote the rules (period calendar, tightest-material definition, callout thresholds, transition handling), and validated every page against the live exports and what the plant actually ran, page by page, over several months of daily use.</p>
+<blockquote>
+<p>Designed, specified and validated by me on live production data. Built with an AI coding assistant.</p>
+</blockquote>
+<h2>Tech notes</h2>
+<ul>
+<li>One HTML file, no build step, no server; SheetJS reads the Excel exports in the browser. Pages 7–9 are sealed sub-apps inside the same file.</li>
+<li>This demo adds a loader that fetches the sample files from <code>data/</code> on open, fixes the clock to the snapshot morning (Oct 14, 2026), and routes each page to its own URL hash. The planning logic is unchanged.</li>
+<li>Sample data: 815 finished items (486 aerosol items with full detail), 5 daily production reports, 2 schedule weeks. See <a href="REPLACEMENTS.md">REPLACEMENTS.md</a> for what was replaced and how.</li>
+<li>Codes in the demo are <code>A####</code> (suffix kept, e.g. <code>A2210-S</code>); lines are A–D.</li>
+</ul>
+<footer><p>Designed, specified and validated by me on live production data. Built with an AI coding assistant.</p></footer>
+</div></body></html>

@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>13-Week Plan · how it works</title><style>
+:root{--bg:#fff;--ink:#1c2228;--muted:#5f6b76;--line:#e3e6e9;--accent:#1f4e55;--accent-soft:#e8f0f0;--tile:#f6f7f8}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1040px;margin:0 auto;padding-block:28px 56px}
+h1,h2,h3{line-height:1.2;text-wrap:balance;margin:0}
+h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.01em}
+h2{font-size:clamp(20px,2.6vw,26px);font-weight:700;margin-top:48px;padding-top:28px;border-top:1px solid var(--line)}
+h3{font-size:18px;font-weight:650}
+p{margin:10px 0;max-width:70ch}a{color:var(--accent);text-decoration:none;border-bottom:1px solid #b9cccd}a:hover{border-color:var(--accent)}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.top{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:baseline}
+.links{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;margin-top:14px}.links a{border:1px solid var(--line);border-radius:999px;padding:5px 12px;color:var(--ink)}.links a:hover{border-color:var(--accent);color:var(--accent)}
+.lede{font-size:clamp(17px,2vw,20px);color:var(--muted);max-width:62ch;margin-top:10px}
+.cards{display:grid;gap:22px;margin-top:22px}
+.card{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--bg)}
+.card img{display:block;width:100%;height:auto;border-bottom:1px solid var(--line);background:var(--tile)}
+.card .body{padding:20px 22px 22px}
+.card .body>p.problem{color:var(--muted)}
+.planner{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:8px}.planner li{padding-left:18px;position:relative}.planner li::before{content:"";position:absolute;left:0;top:.6em;width:8px;height:8px;border-radius:2px;background:var(--accent)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.btn{display:inline-block;border-radius:9px;padding:9px 16px;font-weight:600;font-size:15px;border:1px solid var(--accent)}
+.btn.primary{background:var(--accent);color:#fff}.btn.ghost{color:var(--accent);background:var(--bg)}
+.pages{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;font-size:13px}.pages a{background:var(--accent-soft);border:0;border-radius:6px;padding:4px 9px;color:var(--accent)}
+.how{display:grid;gap:10px;margin-top:14px;max-width:70ch}.how div{display:grid;grid-template-columns:28px 1fr;gap:10px}.how b{color:var(--accent);font-variant-numeric:tabular-nums}
+footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+.note{background:var(--tile);border-radius:10px;padding:12px 16px;font-size:14px;color:var(--muted);margin-top:14px}
+.readme table{border-collapse:collapse;width:100%;font-size:14px;margin:12px 0}.readme th,.readme td{border:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}.readme th{background:var(--tile)}
+.readme img{max-width:100%;border:1px solid var(--line);border-radius:10px;margin:8px 0}.readme pre{background:var(--tile);padding:12px 14px;border-radius:10px;overflow-x:auto;font-size:13px}.readme code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em}
+.readme h2{margin-top:40px}.readme ul,.readme ol{padding-left:22px}.readme li{margin:4px 0}.readme blockquote{margin:14px 0;padding:10px 16px;border-left:3px solid var(--accent);background:var(--tile);color:var(--muted)}
+.tbd{background:#fff4d6;border-radius:4px;padding:0 4px}
+@media (min-width:860px){.cards{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head>
+<body><div class="wrap readme">
+<nav class="links" style="margin:0 0 20px"><a href="../index.html">All tools</a><a href="./index.html">Open the demo</a></nav>
+<h1>13-Week Plan</h1>
+<p><strong>A calendar-driven 13-week production plan, with the reason behind every number.</strong> It reads the plant's daily exports and the two live schedule weeks, locks those weeks, plans the next eleven week by week, and shows why each item got each quantity.</p>
+<p><img alt="13-Week Plan, plan at a glance" src="screenshots/01-plan-at-a-glance.png" /></p>
+<p><a href="./index.html">Open the demo</a> · it loads the sample plant and runs the plan on open (about 15 seconds). The upload area and settings are below the results.</p>
+<h2>The problem</h2>
+<p>The 13-week plan was rebuilt in Excel every week from the same ERP exports: forecast by period, sold-to-date, open orders, on hand, the schedules already in motion and three contract customers' own plans. It took most of a day, the rules lived in the planner's head (period deadlines, pickup lead time, formula-family builds, shutdown pre-builds, run minimums), and once the sheet was out nobody could say why a week's number was what it was.</p>
+<h2>The views</h2>
+<p>The engine runs in five steps and then the results view reads its output:</p>
+<table>
+<thead>
+<tr>
+<th>View</th>
+<th>What it shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="./index.html">Plan at a glance</a></td>
+<td>Stacked weekly cases by reason: locked schedule, current-period demand, next-period preparation, later periods, 90-day formula-family builds, contract-customer plans, shutdown pre-builds, run-minimum top-ups.</td>
+</tr>
+<tr>
+<td>Item × week</td>
+<td>Every item with production, biggest first, by week. Grey columns are the locked schedule weeks. Click a row for the reason.</td>
+</tr>
+<tr>
+<td>Why this number</td>
+<td>For one item: on hand, open orders, forecast vs sold per period, the build per week, the projected week-end stock line, the allocation each week came from and the engine's own notes.</td>
+</tr>
+<tr>
+<td>Line load</td>
+<td>Cases per line per week against the plan's capacity settings, with shutdown and holiday weeks shaded.</td>
+</tr>
+<tr>
+<td>Callouts</td>
+<td>Orders above the LTO forecast (not built automatically), LTO seasons with unsold forecast, items with forecast gaps, open orders with no forecast, negative on hand, combo items.</td>
+</tr>
+<tr>
+<td>Engine steps</td>
+<td>The tool's own five-step log: inputs check, requirement by period, placement, adjustments, validate &amp; export. Downloads the plan workbook and the handoff file.</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="Why this number" src="screenshots/03-why-this-number.png" /></p>
+<h2>Where it's used</h2>
+<ul>
+<li>Builds the 13-week master production schedule for 4 lines across 3 sites, refreshed every week.</li>
+<li>The planning rules are written down in the engine and applied the same way every week instead of from memory.</li>
+<li>Every number can be traced back to its reason: locked schedule, current demand, next-period preparation, formula-family builds or contract-customer plans.</li>
+<li>Callouts surface orders above forecast, forecast gaps and negative on hand before the plan goes to the floor.</li>
+</ul>
+<h2>Inputs → logic → outputs</h2>
+<pre><code>Inputs (xlsx)                               Engine (five steps)                         Outputs
+──────────────────────────────────          ───────────────────────────────────         ──────────────────────────────
+Master code, Item line master          ─┐   1 Inputs check: anchor week, current        Weekly plan: item × 13 weeks
+Forecast normal + LTO (this + next yr)  │     period, locked weeks, customer plans       with source and allocations
+Difference by item (OF), Sold-to-date   │   2 Requirement: per period, forecast or      Results view (this page)
+Product availability (open orders)      ├─▶   OF minus sold minus on hand, 5-day   ─▶   Plan workbook (ZIP) in the
+On hand + PO, Equivalent on hand        │     pickup rule for open orders               plant's existing format
+Bill of materials                       │   3 Placement: locked weeks exact, demand     Handoff file (small)
+This week + next week schedules         │     into open weeks before period deadline    Callouts list
+Three contract-customer plans           │   4 Adjustments: 90-day family builds, run
+Shutdown / holiday settings            ─┘     minimums, batch top-ups, pre-builds
+                                            5 Validate &amp; export: hard failures, warnings
+</code></pre>
+<h2>My role</h2>
+<p>I built the weekly plan by hand before this existed and I run this tool every week now. I specified the calendar (periods of 4–5 weeks, deadlines, anchor week), every planning rule and its order, the treatment of the locked schedule weeks and the three contract customers, and the output format. I validated each release against the plan I would have built by hand and against what the plant actually produced.</p>
+<blockquote>
+<p>Designed, specified and validated by me on live production data. Built with an AI coding assistant.</p>
+</blockquote>
+<h2>Tech notes</h2>
+<ul>
+<li>One HTML file, no build step; SheetJS and JSZip run in the browser. The engine is deterministic: same files, same plan.</li>
+<li>This demo adds a loader (fetches the sample files, sets the anchor week, runs the engine), a fixed clock (Oct 14, 2026) and the results view on top of the engine's output. The planning logic is unchanged.</li>
+<li>The three contract-customer plans and next year's forecast files were synthesised in the customers' file layouts from the sample dataset; see <a href="REPLACEMENTS.md">REPLACEMENTS.md</a>.</li>
+<li>Codes in the demo are <code>A####</code>; lines are A–D; capacity settings are the demo's own.</li>
+</ul>
+<footer><p>Designed, specified and validated by me on live production data. Built with an AI coding assistant.</p></footer>
+</div></body></html>

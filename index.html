@@ -1,402 +1,90 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Operations Dashboard Portfolio</title>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Planning Tools · Ankit Prasad</title>
+<meta name="description" content="Production planning tools built by a planner: Item Intelligence and the 13-Week Plan, running live on a synthetic plant dataset.">
 <style>
-:root{
-  --bg:#eef4f8;
-  --panel:#ffffff;
-  --text:#132238;
-  --muted:#64748b;
-  --navy:#0f3554;
-  --navy2:#155a73;
-  --cyan:#0ea5b7;
-  --green:#15835d;
-  --amber:#c98017;
-  --line:#d8e2ea;
-  --shadow:0 18px 50px rgba(15,53,84,.10);
-}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{
-  margin:0;
-  color:var(--text);
-  font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-  background:
-    radial-gradient(circle at 10% -10%,rgba(14,165,183,.13),transparent 30%),
-    radial-gradient(circle at 95% 5%,rgba(21,90,115,.12),transparent 28%),
-    var(--bg);
-}
-a{text-decoration:none;color:inherit}
-.shell{max-width:1280px;margin:0 auto;padding:28px 24px 56px}
-.hero{
-  position:relative;
-  overflow:hidden;
-  min-height:420px;
-  padding:52px;
-  display:grid;
-  grid-template-columns:minmax(0,1.45fr) minmax(280px,.55fr);
-  gap:34px;
-  align-items:center;
-  color:#fff;
-  border-radius:28px;
-  background:linear-gradient(125deg,#0b2b47 0%,#154c6a 56%,#0b6b73 100%);
-  box-shadow:0 28px 80px rgba(11,43,71,.20);
-}
-.hero:before{
-  content:"";
-  position:absolute;
-  width:520px;height:520px;border-radius:50%;
-  right:-250px;top:-310px;background:rgba(255,255,255,.08);
-}
-.hero:after{
-  content:"";
-  position:absolute;
-  width:300px;height:300px;border-radius:50%;
-  left:42%;bottom:-250px;background:rgba(34,211,238,.14);
-}
-.hero-copy,.hero-side{position:relative;z-index:1}
-.eyebrow{
-  display:flex;align-items:center;gap:9px;
-  text-transform:uppercase;
-  letter-spacing:1.5px;
-  font-weight:900;
-  font-size:11px;
-  color:#bcebf1;
-  margin-bottom:18px;
-}
-.eyebrow i{
-  width:9px;height:9px;border-radius:50%;
-  background:#51dfbe;
-  box-shadow:0 0 0 6px rgba(81,223,190,.13);
-}
-h1{
-  margin:0;
-  max-width:760px;
-  font-size:clamp(38px,5vw,64px);
-  line-height:1.01;
-  letter-spacing:-2px;
-}
-.hero p{
-  margin:20px 0 0;
-  max-width:760px;
-  color:#d8e8f1;
-  font-size:17px;
-  line-height:1.62;
-}
-.pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
-.pill{
-  border:1px solid rgba(255,255,255,.16);
-  background:rgba(255,255,255,.07);
-  color:#d9edf3;
-  padding:7px 10px;
-  border-radius:999px;
-  font-size:11px;
-  font-weight:800;
-}
-.hero-side{
-  border:1px solid rgba(255,255,255,.15);
-  background:rgba(255,255,255,.08);
-  backdrop-filter:blur(12px);
-  padding:22px;
-  border-radius:20px;
-}
-.hero-side small{
-  text-transform:uppercase;
-  letter-spacing:1.1px;
-  color:#a9d9e2;
-  font-weight:900;
-}
-.hero-side h2{
-  margin:8px 0 14px;
-  font-size:21px;
-  letter-spacing:-.5px;
-}
-.side-row{
-  display:flex;
-  gap:11px;
-  padding:12px 0;
-  border-top:1px solid rgba(255,255,255,.10);
-}
-.side-row:first-of-type{border-top:0}
-.side-num{
-  width:30px;height:30px;flex:0 0 30px;
-  display:grid;place-items:center;
-  border-radius:9px;
-  background:rgba(81,223,190,.13);
-  border:1px solid rgba(81,223,190,.24);
-  color:#81efd6;
-  font-size:10px;font-weight:950;
-}
-.side-row b{display:block;font-size:13px}
-.side-row span{display:block;margin-top:3px;color:#c8dce6;font-size:11px;line-height:1.4}
-.section-head{
-  margin:42px 0 18px;
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-end;
-  gap:20px;
-}
-.section-head small{
-  text-transform:uppercase;
-  letter-spacing:1.15px;
-  font-size:10px;
-  font-weight:950;
-  color:#0d8798;
-}
-.section-head h2{
-  margin:5px 0 0;
-  font-size:28px;
-  letter-spacing:-.7px;
-  color:var(--navy);
-}
-.section-head p{
-  margin:0;
-  max-width:510px;
-  text-align:right;
-  color:var(--muted);
-  font-size:12px;
-  line-height:1.5;
-}
-.grid{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:18px;
-}
-.card{
-  position:relative;
-  overflow:hidden;
-  min-height:410px;
-  display:flex;
-  flex-direction:column;
-  background:var(--panel);
-  border:1px solid var(--line);
-  border-radius:22px;
-  box-shadow:var(--shadow);
-  transition:transform .2s ease, box-shadow .2s ease;
-}
-.card:hover{
-  transform:translateY(-5px);
-  box-shadow:0 26px 64px rgba(15,53,84,.15);
-}
-.card-top{
-  height:8px;
-  background:linear-gradient(90deg,var(--navy2),var(--cyan));
-}
-.card-body{padding:24px;display:flex;flex-direction:column;flex:1}
-.card-icon{
-  width:48px;height:48px;
-  display:grid;place-items:center;
-  border-radius:14px;
-  background:#e8f4f7;
-  color:#0c7585;
-  font-size:21px;
-  font-weight:950;
-}
-.card-kicker{
-  margin-top:20px;
-  text-transform:uppercase;
-  letter-spacing:1px;
-  color:#718096;
-  font-size:9px;
-  font-weight:950;
-}
-.card h3{
-  margin:7px 0 10px;
-  color:var(--navy);
-  font-size:22px;
-  line-height:1.12;
-  letter-spacing:-.5px;
-}
-.card p{
-  margin:0;
-  color:var(--muted);
-  font-size:13px;
-  line-height:1.6;
-}
-.features{
-  margin:18px 0 0;
-  padding:0;
-  list-style:none;
-}
-.features li{
-  position:relative;
-  padding:7px 0 7px 18px;
-  color:#40556a;
-  font-size:12px;
-  border-bottom:1px solid #edf2f6;
-}
-.features li:last-child{border-bottom:0}
-.features li:before{
-  content:"";
-  position:absolute;
-  left:0;top:12px;
-  width:7px;height:7px;border-radius:50%;
-  background:var(--green);
-}
-.open{
-  margin-top:auto;
-  padding-top:22px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  color:#0b6074;
-  font-weight:950;
-  font-size:12px;
-}
-.arrow{
-  width:36px;height:36px;
-  display:grid;place-items:center;
-  border-radius:11px;
-  color:#fff;
-  background:linear-gradient(135deg,#165b7b,#0d8894);
-  transition:transform .18s ease;
-}
-.card:hover .arrow{transform:translateX(3px)}
-.note{
-  margin-top:24px;
-  display:flex;
-  justify-content:space-between;
-  gap:20px;
-  align-items:center;
-  padding:17px 20px;
-  border:1px solid #cfe0e8;
-  border-radius:16px;
-  background:rgba(255,255,255,.72);
-  color:#556779;
-  font-size:11px;
-  line-height:1.5;
-}
-.note b{color:var(--navy)}
-footer{
-  margin-top:30px;
-  text-align:center;
-  color:#7b8998;
-  font-size:10px;
-}
-@media(max-width:980px){
-  .hero{grid-template-columns:1fr;padding:36px}
-  .grid{grid-template-columns:1fr}
-  .card{min-height:auto}
-  .section-head{align-items:flex-start;flex-direction:column}
-  .section-head p{text-align:left}
-}
-@media(max-width:620px){
-  .shell{padding:14px 12px 34px}
-  .hero{padding:28px 22px;border-radius:20px}
-  h1{font-size:40px}
-  .note{align-items:flex-start;flex-direction:column}
-}
-</style>
-</head>
-<body>
-<main class="shell">
-  <section class="hero">
-    <div class="hero-copy">
-      <div class="eyebrow"><i></i> Operations & manufacturing decision systems</div>
-      <h1>Planning tools built around real operational decisions.</h1>
-      <p>
-        A focused portfolio of browser-based manufacturing dashboards that turn schedules,
-        material constraints, inventory, and production requirements into clear planner actions.
-      </p>
-      <div class="pills">
-        <span class="pill">Production Planning</span>
-        <span class="pill">Material Readiness</span>
-        <span class="pill">Capacity & Scheduling</span>
-        <span class="pill">Inventory Decisions</span>
-        <span class="pill">Client-Side Demo Data</span>
-      </div>
-    </div>
+:root{--bg:#fff;--ink:#1c2228;--muted:#5f6b76;--line:#e3e6e9;--accent:#1f4e55;--accent-soft:#e8f0f0;--tile:#f6f7f8}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1040px;margin:0 auto;padding-block:28px 56px}
+h1,h2,h3{line-height:1.2;text-wrap:balance;margin:0}
+h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.01em}
+h2{font-size:clamp(20px,2.6vw,26px);font-weight:700;margin-top:48px;padding-top:28px;border-top:1px solid var(--line)}
+h3{font-size:18px;font-weight:650}
+p{margin:10px 0;max-width:70ch}a{color:var(--accent);text-decoration:none;border-bottom:1px solid #b9cccd}a:hover{border-color:var(--accent)}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.top{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:baseline}
+.links{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;margin-top:14px}.links a{border:1px solid var(--line);border-radius:999px;padding:5px 12px;color:var(--ink)}.links a:hover{border-color:var(--accent);color:var(--accent)}
+.lede{font-size:clamp(17px,2vw,20px);color:var(--muted);max-width:62ch;margin-top:10px}
+.cards{display:grid;gap:22px;margin-top:22px}
+.card{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--bg)}
+.card img{display:block;width:100%;height:auto;border-bottom:1px solid var(--line);background:var(--tile)}
+.card .body{padding:20px 22px 22px}
+.card .body>p.problem{color:var(--muted)}
+.planner{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:8px}.planner li{padding-left:18px;position:relative}.planner li::before{content:"";position:absolute;left:0;top:.6em;width:8px;height:8px;border-radius:2px;background:var(--accent)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.btn{display:inline-block;border-radius:9px;padding:9px 16px;font-weight:600;font-size:15px;border:1px solid var(--accent)}
+.btn.primary{background:var(--accent);color:#fff}.btn.ghost{color:var(--accent);background:var(--bg)}
+.pages{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;font-size:13px}.pages a{background:var(--accent-soft);border:0;border-radius:6px;padding:4px 9px;color:var(--accent)}
+.how{display:grid;gap:10px;margin-top:14px;max-width:70ch}.how div{display:grid;grid-template-columns:28px 1fr;gap:10px}.how b{color:var(--accent);font-variant-numeric:tabular-nums}
+footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+.note{background:var(--tile);border-radius:10px;padding:12px 16px;font-size:14px;color:var(--muted);margin-top:14px}
+.readme table{border-collapse:collapse;width:100%;font-size:14px;margin:12px 0}.readme th,.readme td{border:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}.readme th{background:var(--tile)}
+.readme img{max-width:100%;border:1px solid var(--line);border-radius:10px;margin:8px 0}.readme pre{background:var(--tile);padding:12px 14px;border-radius:10px;overflow-x:auto;font-size:13px}.readme code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em}
+.readme h2{margin-top:40px}.readme ul,.readme ol{padding-left:22px}.readme li{margin:4px 0}.readme blockquote{margin:14px 0;padding:10px 16px;border-left:3px solid var(--accent);background:var(--tile);color:var(--muted)}
+.tbd{background:#fff4d6;border-radius:4px;padding:0 4px}
+@media (min-width:860px){.cards{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head>
+<body><div class="wrap">
+  <header>
+    <div class="top"><div><div class="eyebrow">Planning Tools</div><h1>Ankit Prasad</h1></div></div>
+    <p class="lede">Production planner at a food manufacturing plant. I build the planning tools I need, then run them on live data every day. Two of them are here, running on a synthetic plant dataset.</p>
+    <nav class="links" aria-label="Profile links"><a href="https://www.linkedin.com/in/ankit-a-prasad/">LinkedIn</a><a href="https://github.com/Ankit-Prasad-AP">GitHub</a><a href="Ankit_Prasad_Resume.pdf">Resume (PDF)</a><a href="mailto:ankitprasad.work@gmail.com">ankitprasad.work@gmail.com</a></nav>
+  </header>
 
-    <aside class="hero-side">
-      <small>Portfolio focus</small>
-      <h2>Three strongest decision-support demos</h2>
-      <div class="side-row">
-        <div class="side-num">01</div>
-        <div><b>Cream Tanker Planning</b><span>Time-phased demand, site balances, and whole-load dispatch.</span></div>
-      </div>
-      <div class="side-row">
-        <div class="side-num">02</div>
-        <div><b>Production Checker</b><span>Production validation, exceptions, and planner review.</span></div>
-      </div>
-      <div class="side-row">
-        <div class="side-num">03</div>
-        <div><b>Item Readiness</b><span>Item-level demand, inventory, BOM, schedule, and material readiness.</span></div>
-      </div>
-    </aside>
+  <section>
+    <h2>Two tools</h2>
+    <p>Both open with the sample plant already loaded. Everything on screen is computed in the browser from the Excel files in each tool's <code>data</code> folder; nothing is uploaded anywhere.</p>
+    <div class="cards">
+      <article class="card">
+        <a href="item-intelligence/index.html" style="border:0"><img src="item-intelligence/screenshots/item-intelligence.gif" alt="Item Intelligence demo" width="960" height="600" loading="lazy"></a>
+        <div class="body">
+          <div class="eyebrow">One item, every planning fact, one screen.</div>
+          <h3 style="margin-top:6px">Item Intelligence</h3>
+          <p class="problem">To answer "can we run this item next week?" a planner had to open six ERP exports, the BOM, the lot list and the live schedule, then reconcile them by hand.</p>
+          <ul class="planner"><li>Search one item and see forecast, sold-to-date, on hand, open orders, materials, lots, transitions and where it sits on this week's schedule.</li><li>The callout sheet lists, for the next weeks, every item whose orders exceed forecast or whose tightest material runs out before the order date.</li><li>The daily production report and the weekly schedule email are built from the same files as the item pages, so every number matches.</li></ul>
+          <div class="actions"><a class="btn primary" href="item-intelligence/index.html">Open the demo</a><a class="btn ghost" href="item-intelligence/README.html">How it works</a></div>
+          <div class="pages"><a href="item-intelligence/index.html#item-information">1 · Item information</a><a href="item-intelligence/index.html#bom-viewer">2 · BOM viewer</a><a href="item-intelligence/index.html#relationship-web">3 · Relationship web</a><a href="item-intelligence/index.html#callout-sheet">4 · Callout sheet</a><a href="item-intelligence/index.html#transitions">5 · Transitions</a><a href="item-intelligence/index.html#accounts">6 · Accounts</a><a href="item-intelligence/index.html#rework">7 · Rework</a><a href="item-intelligence/index.html#daily-production-report">8 · Daily production report</a><a href="item-intelligence/index.html#weekly-email">9 · Weekly email</a><a href="item-intelligence/index.html#days-of-supply">10 · Days of supply</a></div>
+        </div>
+      </article>
+      <article class="card">
+        <a href="13-week-plan/index.html" style="border:0"><img src="13-week-plan/screenshots/13-week-plan.gif" alt="13-Week Plan demo" width="960" height="600" loading="lazy"></a>
+        <div class="body">
+          <div class="eyebrow">A calendar-driven 13-week production plan, with the reason behind every number.</div>
+          <h3 style="margin-top:6px">13-Week Plan</h3>
+          <p class="problem">The 13-week plan was rebuilt in Excel every week from the same exports, took most of a day, and nobody could say afterwards why a week's number was what it was.</p>
+          <ul class="planner"><li>Reads the daily exports plus the two live schedule weeks, locks those weeks exactly as scheduled and plans the eleven after them.</li><li>Applies the period deadlines, the 5-day pickup rule, 90-day formula-family builds, contract-customer plans, shutdown pre-builds and run minimums, in that order.</li><li>Every weekly number traces back to its allocation and engine notes; the output workbook keeps the format the plant already used.</li></ul>
+          <div class="actions"><a class="btn primary" href="13-week-plan/index.html">Open the demo</a><a class="btn ghost" href="13-week-plan/README.html">How it works</a></div>
+          <div class="pages"><a href="13-week-plan/index.html">Plan at a glance</a><a href="13-week-plan/index.html">Item × week</a><a href="13-week-plan/index.html">Why this number</a><a href="13-week-plan/index.html">Line load</a><a href="13-week-plan/index.html">Callouts</a></div>
+        </div>
+      </article>
+    </div>
+    <div class="note">The data is synthetic: same file layouts and planning situations as the real plant, with every code, name and quantity replaced. The snapshot date is fixed at Wednesday, October 14, 2026 so the pages always read the same way.</div>
   </section>
 
-  <div class="section-head">
-    <div>
-      <small>Featured dashboards</small>
-      <h2>Open a live demo</h2>
+  <section>
+    <h2>How I work</h2>
+    <div class="how">
+      <div><b>1</b><span>Start from a decision the planner makes every week and the files that decision is really made from.</span></div>
+      <div><b>2</b><span>Write the rules down with the people who hold them in their heads, then make the tool show its reasoning, not just its answer.</span></div>
+      <div><b>3</b><span>Validate on live data against what the plant actually ran before anyone else relies on it.</span></div>
+      <div><b>4</b><span>Keep it to one file that runs in a browser, so it works on any plant laptop with no install and no IT ticket.</span></div>
     </div>
-    <p>These three projects are intentionally featured first. Additional dashboards can remain in the repository without being shown on the public landing page.</p>
-  </div>
-
-  <section class="grid">
-
-    <a class="card" href="GIT_Dashboard_Cream_Tanker_Planning/cream-tanker-planning/" aria-label="Open Cream Tanker Planning dashboard">
-      <div class="card-top"></div>
-      <div class="card-body">
-        <div class="card-icon">▰</div>
-        <div class="card-kicker">Supply & production coordination</div>
-        <h3>Cream Demand & Tanker Allocation</h3>
-        <p>Converts a production schedule into time-phased cream demand and a physical whole-tanker delivery plan by destination.</p>
-        <ul class="features">
-          <li>Cross-midnight demand allocation</li>
-          <li>Destination-specific site balances</li>
-          <li>Whole-tanker dispatch logic</li>
-          <li>Receiving deadlines and planner callouts</li>
-        </ul>
-        <div class="open"><span>Open dashboard</span><span class="arrow">→</span></div>
-      </div>
-    </a>
-
-    <a class="card" href="GIT_Dashboard_En_Masse_Production_Checker/en-masse-production-checker/" aria-label="Open Production Checker dashboard">
-      <div class="card-top"></div>
-      <div class="card-body">
-        <div class="card-icon">✓</div>
-        <div class="card-kicker">Production control</div>
-        <h3>Production Checker</h3>
-        <p>Provides a fast, structured review of production plans so planners can surface exceptions, validate execution, and focus attention where it matters.</p>
-        <ul class="features">
-          <li>Decision-first production review</li>
-          <li>Exception and risk visibility</li>
-          <li>Planner-focused validation workflow</li>
-          <li>Interactive synthetic demo scenario</li>
-        </ul>
-        <div class="open"><span>Open dashboard</span><span class="arrow">→</span></div>
-      </div>
-    </a>
-
-    <a class="card" href="GIT_Dashboard_Item_Information_Tool/item-readiness-material-planning/" aria-label="Open Item Readiness dashboard">
-      <div class="card-top"></div>
-      <div class="card-body">
-        <div class="card-icon">◎</div>
-        <div class="card-kicker">Item & material planning</div>
-        <h3>Item Readiness & Material Planning</h3>
-        <p>Brings item demand, inventory, schedule status, BOM components, and material coverage into one planner-oriented decision view.</p>
-        <ul class="features">
-          <li>Item-level planning summary</li>
-          <li>BOM and component readiness</li>
-          <li>Inventory and purchase-order visibility</li>
-          <li>Schedule and coverage context</li>
-        </ul>
-        <div class="open"><span>Open dashboard</span><span class="arrow">→</span></div>
-      </div>
-    </a>
-
   </section>
 
-  <div class="note">
-    <div><b>Portfolio approach:</b> keep the public homepage selective. The repository can contain additional projects, but the landing page should lead with the strongest work.</div>
-    <div>All featured demos use synthetic portfolio data.</div>
-  </div>
-
-  <footer>Operations Dashboard Portfolio</footer>
-</main>
-</body>
-</html>
+  <footer>
+    <p>Designed, specified and validated by me on live production data. Built with an AI coding assistant.</p>
+    <p>© Ankit Prasad. Demo data is synthetic. Tool logic is my own work and is shared here for review, not for reuse.</p>
+  </footer>
+</div></body></html>
