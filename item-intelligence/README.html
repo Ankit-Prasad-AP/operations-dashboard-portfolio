@@ -39,7 +39,7 @@ footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);color:v
 <h1>Item Intelligence</h1>
 <p><strong>One item, every planning fact, one screen.</strong> Type an item code and the page shows its forecast, sold-to-date, on hand, open orders, bill of materials with material stock, lots and expiry, packaging transitions, where it sits on this week's and next week's schedule, and what was produced this week.</p>
 <p><img alt="Item Intelligence, page 1" src="screenshots/01-item-information.png" /></p>
-<p><a href="./index.html">Open the demo</a> · it loads the sample plant on open (about 10 seconds) and starts on item A2210.</p>
+<p><a href="./index.html">Open the demo</a> · it loads the sample plant on open (about 10 seconds, showing each file it reads and the pages it feeds) and starts on item A2210. Press <strong>Present</strong> on the bottom bar for a click-through tour: arrow keys, Space or a presentation clicker move through it, and it loops.</p>
 <h2>The problem</h2>
 <p>Every planning question at the plant touched the same half-dozen ERP exports: the forecast, the sold-to-date report, product availability (open orders), on hand and purchase orders, the bill of materials, lots on hand, plus the week's production schedule. Answering "can we run A2210 next week, and should we?" meant opening all of them, filtering each to one item and reconciling the numbers by hand, for every item, every day. The same files also fed the daily production report and the weekly schedule email, which were rebuilt by hand too.</p>
 <h2>The pages</h2>
@@ -55,7 +55,7 @@ footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);color:v
 <tr>
 <td>1</td>
 <td><a href="./index.html#item-information">Item information</a></td>
-<td>Everything about one item: status, pack, formula family, forecast vs sold by period, open orders, on hand, materials with tightest-material flag, lots, account executives selling it.</td>
+<td>Everything about one item: status, pack, formula family, forecast vs sold by period, open orders, on hand, days of supply, a tunable safety-stock suggestion, materials with tightest-material flag, lots, account executives selling it. Hover the ⓘ on any key number to see how it is worked out.</td>
 </tr>
 <tr>
 <td>2</td>
@@ -121,6 +121,24 @@ footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);color:v
 <li>Orders above forecast, items with no forecast and materials that run out before pickup are flagged on one callout sheet before the schedule is released.</li>
 <li>The daily production report and the weekly schedule email are built from the same files instead of being rebuilt by hand.</li>
 </ul>
+<h2>How it compares with general inventory-planning software</h2>
+<p>General inventory-planning tools are built to forecast and reorder for many kinds of business. This one was built for a single job, planning an aerosol production plant day to day, so it goes deeper where that job needs it and leaves the rest to the systems built for it.</p>
+<p><strong>Where it goes further</strong></p>
+<ul>
+<li><strong>Same-morning data, in seconds.</strong> It reads the morning's exports as they are, in about 10 seconds. Planning tools that sync from the ERP often refresh on an overnight schedule.</li>
+<li><strong>Down to the line and the shift.</strong> This week's and next week's line schedules and the daily production reports sit next to demand, so what is needed, what is planned and what was made are on one screen.</li>
+<li><strong>Shortage dates from real orders.</strong> Finished-goods days of supply walks the open orders by pick date until on hand runs out, next to the forecast-pace view.</li>
+<li><strong>Shelf life by lot.</strong> Each lot is checked against its expiry and the forecast pace, first-expiry-first-out, with the dairy / non-dairy minimum-days rule.</li>
+<li><strong>Contract customers' own plans.</strong> Each contract customer's weekly command file is read in its own layout and drives proposed production for their items.</li>
+<li><strong>Packaging the way the plant counts it.</strong> Cans per case including scrap, 12-pack equivalents, shared materials, combo packs built from single packs, and packaging switches with the old stock they would leave behind.</li>
+<li><strong>Production minimums.</strong> Proposed runs respect pallet and batch minimums.</li>
+<li><strong>Safety stock you can tune.</strong> A suggested buffer per item, sized from how much sales have missed the forecast, with service level and reaction time to adjust. It is shown beside the plan, so the planner decides.</li>
+<li><strong>Every number shows its working.</strong> A small ⓘ on each key figure opens the inputs and the arithmetic behind it.</li>
+<li><strong>Ready-to-send outputs.</strong> The callout sheet, the weekly schedule email and the rework email come out ready to paste.</li>
+<li><strong>Nothing to install.</strong> One file that opens in a browser. The data never leaves the computer and nothing is stored.</li>
+</ul>
+<p><strong>What it leaves to dedicated systems</strong></p>
+<p>Purchase-order automation, statistical demand forecasting, multi-site stock balancing and user management stay with the ERP and the planning systems built for them. This tool reads their output and turns it into decisions for the plant floor.</p>
 <h2>Inputs → logic → outputs</h2>
 <pre><code>ERP exports (xlsx)                      Logic (in the browser)                  Outputs
 ──────────────────────────────          ─────────────────────────────────       ────────────────────────────

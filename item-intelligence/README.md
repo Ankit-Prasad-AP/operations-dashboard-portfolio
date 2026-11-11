@@ -4,7 +4,7 @@
 
 ![Item Intelligence, page 1](screenshots/01-item-information.png)
 
-[Open the demo](./index.html) · it loads the sample plant on open (about 10 seconds) and starts on item A2210.
+[Open the demo](./index.html) · it loads the sample plant on open (about 10 seconds, showing each file it reads and the pages it feeds) and starts on item A2210. Press **Present** on the bottom bar for a click-through tour: arrow keys, Space or a presentation clicker move through it, and it loops.
 
 ## The problem
 
@@ -14,7 +14,7 @@ Every planning question at the plant touched the same half-dozen ERP exports: th
 
 | # | Page | What the planner gets |
 |---|------|-----------------------|
-| 1 | [Item information](./index.html#item-information) | Everything about one item: status, pack, formula family, forecast vs sold by period, open orders, on hand, materials with tightest-material flag, lots, account executives selling it. |
+| 1 | [Item information](./index.html#item-information) | Everything about one item: status, pack, formula family, forecast vs sold by period, open orders, on hand, days of supply, a tunable safety-stock suggestion, materials with tightest-material flag, lots, account executives selling it. Hover the ⓘ on any key number to see how it is worked out. |
 | 2 | [BOM viewer](./index.html#bom-viewer) | The item's bill of materials as a tree, with on hand and open purchase orders for each component, and what else uses them. |
 | 3 | [Relationship web](./index.html#relationship-web) | Where-used in both directions: item → materials, material → items, combo parents and children. |
 | 4 | [Callout sheet](./index.html#callout-sheet) | For the next weeks: items with orders above forecast, items with no forecast, items whose tightest material runs out before the pickup date. Copyable as a list. |
@@ -33,6 +33,28 @@ Every planning question at the plant touched the same half-dozen ERP exports: th
 - One search replaces looking an item up across six separate ERP exports.
 - Orders above forecast, items with no forecast and materials that run out before pickup are flagged on one callout sheet before the schedule is released.
 - The daily production report and the weekly schedule email are built from the same files instead of being rebuilt by hand.
+
+## How it compares with general inventory-planning software
+
+General inventory-planning tools are built to forecast and reorder for many kinds of business. This one was built for a single job, planning an aerosol production plant day to day, so it goes deeper where that job needs it and leaves the rest to the systems built for it.
+
+**Where it goes further**
+
+- **Same-morning data, in seconds.** It reads the morning's exports as they are, in about 10 seconds. Planning tools that sync from the ERP often refresh on an overnight schedule.
+- **Down to the line and the shift.** This week's and next week's line schedules and the daily production reports sit next to demand, so what is needed, what is planned and what was made are on one screen.
+- **Shortage dates from real orders.** Finished-goods days of supply walks the open orders by pick date until on hand runs out, next to the forecast-pace view.
+- **Shelf life by lot.** Each lot is checked against its expiry and the forecast pace, first-expiry-first-out, with the dairy / non-dairy minimum-days rule.
+- **Contract customers' own plans.** Each contract customer's weekly command file is read in its own layout and drives proposed production for their items.
+- **Packaging the way the plant counts it.** Cans per case including scrap, 12-pack equivalents, shared materials, combo packs built from single packs, and packaging switches with the old stock they would leave behind.
+- **Production minimums.** Proposed runs respect pallet and batch minimums.
+- **Safety stock you can tune.** A suggested buffer per item, sized from how much sales have missed the forecast, with service level and reaction time to adjust. It is shown beside the plan, so the planner decides.
+- **Every number shows its working.** A small ⓘ on each key figure opens the inputs and the arithmetic behind it.
+- **Ready-to-send outputs.** The callout sheet, the weekly schedule email and the rework email come out ready to paste.
+- **Nothing to install.** One file that opens in a browser. The data never leaves the computer and nothing is stored.
+
+**What it leaves to dedicated systems**
+
+Purchase-order automation, statistical demand forecasting, multi-site stock balancing and user management stay with the ERP and the planning systems built for them. This tool reads their output and turns it into decisions for the plant floor.
 
 ## Inputs → logic → outputs
 
