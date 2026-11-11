@@ -424,9 +424,9 @@ const EMBEDDED_CUSTOMER_ROWS = [];
 const DEFAULT_PREBUILT=[{"code":"A1540","name":""},{"code":"A1280","name":""},{"code":"A1473","name":""},{"code":"A4018-G","name":""},{"code":"A1280-A","name":""},{"code":"A1390","name":""},{"code":"A3453","name":""},{"code":"A3511","name":""},{"code":"A3050","name":""},{"code":"A1135","name":""},{"code":"A3204","name":""},{"code":"A1788","name":""},{"code":"A1406","name":""},{"code":"A4907","name":""},{"code":"A4054","name":""},{"code":"A1430","name":""},{"code":"A2905","name":""},{"code":"A2568","name":""},{"code":"A1449","name":""},{"code":"A3287","name":""}];
 const TOP20=DEFAULT_PREBUILT.map(x=>x.code);
 const CUSTOMER_MAP={
- Meridian:{'62420705':'A3992','58097871':'A2696','52214947':'A2404','95112133':'A2085','34741166':'A3729','68622256':'A1350','62096654':'A1361','91793754':'A4129','53268086':'A3487'},
- Harborline:{'9335714833':'A4901','2408316008699':'A2470','8225123937045':'A3548','5137790443512':'A2797','2882002087':'A1304','272463823':'A1078','9440271762':'A2101','2049161248':'A3987','2528559665425':'A3964','8874717429':'A2437','9922121951':'A4364','2134860469':'A1331','2346197705':'A1666'},
- Northgate:{'977373':'A1564','536648':'A3956','606628':'A1938','227344':'A2627','390599':'A1734','897627':'A4581','387072':'A3563','335386':'A2725','333552':'A2891','346736':'A4729','605757':'A2781','297686':'A2473','244357':'A4446','397102':'A2876'}
+ Meridian:{'36648034':'A3992','51239370':'A2696','38707229':'A2404','60662848':'A2085','92717625':'A3729','69934673':'A1350','97102822':'A1361','62096654':'A4129','65326808':'A3487'},
+ Harborline:{'5418820020':'A4901','6863353861408':'A2470','8723355251377':'A3548','8747174292474':'A2797','8044351292':'A1304','563823897':'A1078','5505285596':'A2101','3070578622':'A3987','2978710273444':'A3964','8470049161':'A2437','3563357148':'A4364','3121951072':'A1331','6271134860':'A1666'},
+ Northgate:{'617937':'A1564','216677':'A3956','348292':'A1938','670575':'A2627','316008':'A1734','373197':'A4581','933440':'A3563','390599':'A2725','212133':'A2891','654259':'A4729','619770':'A2781','569624':'A2473','652214':'A4446','504435':'A2876'}
 };
 const COMAN_LOCKED={
  Meridian:new Set(['A4129','A1361','A1350','A2085','A2404','A3729','A3487','A3992','A2696']),
@@ -543,8 +543,8 @@ function snapshotDateFromName(name){let m=String(name).match(/(\d{1,2})[.\-](\d{
 function remapOldDates(ds,fileName){let good=ds.filter(Boolean).map(x=>new Date(x+'T00:00:00'));let snap=snapshotDateFromName(fileName);if(!good.length||!snap)return new Map(ds.map(x=>[x,x]));if(good.some(d=>d.getFullYear()===snap.getFullYear()))return new Map(ds.map(x=>[x,x]));let anchor=good.slice().sort((a,b)=>Math.abs((new Date(snap.getFullYear(),a.getMonth(),a.getDate())-snap))-Math.abs((new Date(snap.getFullYear(),b.getMonth(),b.getDate())-snap)))[0];let weeks=Math.round((snap-anchor)/(86400000*7));let mp=new Map();for(const x of ds){if(!x)continue;let d=new Date(x+'T00:00:00');d.setDate(d.getDate()+weeks*7);mp.set(x,d.toISOString().slice(0,10))}return mp}
 function customerMappingKey(customer,no,description){return `${customer}|${String(no||'').trim()}|${hd(description||'')}`}
 function resolveCustomerCode(customer,no,description,direct){let d=code(direct);if(d.startsWith('A'))return d;let k=customerMappingKey(customer,no,description),ov=code(state.customerMappingOverrides[k]||'');if(ov.startsWith('A'))return ov;
-  /* Northgate 397102 is reused for multiple Canadian seasonal flavors, so description must disambiguate it. */
-  if(customer==='Northgate'&&String(no).trim()==='397102'){let z=String(description||'').toUpperCase();if(/PUMPKIN/.test(z))return'A2876';if(/PEPPERMINT/.test(z))return'A2346';if(/SALTED/.test(z))return'A2060';return''}
+  /* Northgate 504435 is reused for multiple Canadian seasonal flavors, so description must disambiguate it. */
+  if(customer==='Northgate'&&String(no).trim()==='504435'){let z=String(description||'').toUpperCase();if(/PUMPKIN/.test(z))return'A2876';if(/PEPPERMINT/.test(z))return'A2346';if(/SALTED/.test(z))return'A2060';return''}
   return code(CUSTOMER_MAP[customer]?.[String(no||'').trim()]||'')}
 function customerCase(v){let x=n(v);return x>0?Math.round(x):0}
 function customerReverseNo(customer,c){c=code(c);for(const [no,cc] of Object.entries(CUSTOMER_MAP[customer]||{}))if(code(cc)===c)return no;return''}
@@ -570,7 +570,7 @@ function parseCustomer(wb,fileName,customer){
    sheet=wb.SheetNames.find(x=>/planner Northgate - Northgate/i.test(x))||wb.SheetNames.find(x=>/SUMMARY BY WEEK FOR Northgate/i.test(x))||wb.SheetNames[0];a=AOAVisible(wb,sheet);
    for(let rr=0;rr<Math.min(20,a.length);rr++){let hh=(a[rr]||[]).map(hd);if(hh.includes('ITEM')&&hh.includes('ITEMDESC')){headerRow=rr;break}}if(headerRow<0)headerRow=5;
    for(let cc=0;cc<(a[headerRow]||[]).length;cc++){let d=cleanDate(a[headerRow][cc]);if(HORIZON.includes(d))dateCols.push([cc,d])}
-   for(let r=headerRow+1;r<a.length;r++){let no=String(a[r]?.[1]||'').trim(),description=String(a[r]?.[2]||'').trim();if(!no)continue;let c=resolveCustomerCode(customer,no,description,'');if(!locked.has(c))continue;if(no==='397102'&&!/PUMPKIN/i.test(description))continue;keep(c,no,description,r)}
+   for(let r=headerRow+1;r<a.length;r++){let no=String(a[r]?.[1]||'').trim(),description=String(a[r]?.[2]||'').trim();if(!no)continue;let c=resolveCustomerCode(customer,no,description,'');if(!locked.has(c))continue;if(no==='504435'&&!/PUMPKIN/i.test(description))continue;keep(c,no,description,r)}
  }
  if(!dateCols.length)throw Error(`${customer} weekly date columns not found for the visible 13-week horizon.`);
  // Locked COMAN identity is authoritative. Every locked item gets every horizon week; hidden/absent source rows and blank cells are exact 0. Rows outside the locked list are ignored and never block Stage 1.
@@ -1425,7 +1425,7 @@ function detectByContent(wb,fileName){
   if(names.includes('Item Line Master'))return'ilm';
   if(names.some(x=>/^WEEKLY PLAN$/i.test(x))&&/1260057[345]/.test(probe))return'meridian';
   if(names.some(x=>/PRODUCTION SUMMARY/i.test(x))&&(/7100551|HARBOR|A2470|A3548/.test(probe)))return'harborline';
-  if(names.some(x=>/SUMMARY BY WEEK FOR Northgate|planner Northgate - Northgate/i.test(x))||(/COLD FOAM/.test(probe)&&/536648|606628|227344/.test(probe)))return'northgate';
+  if(names.some(x=>/SUMMARY BY WEEK FOR Northgate|planner Northgate - Northgate/i.test(x))||(/COLD FOAM/.test(probe)&&/216677|348292|670575/.test(probe)))return'northgate';
   if(/APPLIED FILTERS:[\s\S]*LTO IS Y/i.test(probe)||(()=>{for(const s of wb.SheetNames){try{let a=AOA(wb,s);for(let r=Math.max(0,a.length-8);r<a.length;r++)if(/LTO IS Y/i.test(String(a[r]?.[0]||'')))return true}catch(e){}}return false})())return'lto';
   if(names.some(x=>/^EXPORT$/i.test(x))&&/ITEM CODE/.test(probe)&&/P1 FCST/.test(probe))return'forecast';
   if(/2026 SALES/.test(probe)&&/% THROUGH FORECAST/.test(probe))return'diff';
