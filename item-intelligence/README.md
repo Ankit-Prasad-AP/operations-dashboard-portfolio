@@ -26,6 +26,7 @@ Every planning question at the plant touched the same half-dozen ERP exports: th
 | 10 | [Days of supply](./index.html#days-of-supply) | Days of supply per item and per material, on hand and on hand + purchase orders, with the tightest material for each item. |
 | 11 | [Forecast](./index.html#forecast) | This year, next year or both, in cases or equivalent: normal vs LTO vs contract-customer forecast by period, the LTO breakdown, top items, and a customer / item review that flags forecast moves above a set size. |
 | 12 | [Contract customers](./index.html#contract-customers) | Each contract customer's own weekly plan exactly as their file gives it, one row per item, scrollable by week. Click a week to highlight it across customers with totals; double-click an item to open it on page 1. |
+| 13 | [Schedule · DPR · system log](./index.html#schedule-dpr-log) | One weekly schedule laid out like the Excel sheets, with the daily production report quantity and the system posting next to the scheduled cases on every row. Postings are matched to shift lines by quantity first; not posted, short / over and possible double postings are flagged. Excel log for checking. |
 
 ## Where it's used
 
